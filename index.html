@@ -99,6 +99,18 @@
       box-shadow: 0 0 10px rgba(52, 199, 89, 0.8);
     }
 
+    .size-tag {
+      display: inline-block;
+      background: #1F1938;
+      color: #00F2FF;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border: 1px solid rgba(0, 242, 255, 0.3);
+    }
+
     .timer-text { font-size: 12px; color: #FF007F; margin-top: 6px; font-weight: bold; }
 
     /* FOOTER TRUST & POLICY */
@@ -150,12 +162,13 @@
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-box">
       <button class="close-btn" id="closeBtn" onclick="startActualDownload()">✓</button>
-      <h3 style="margin-top: 5px; color: #00F2FF;">Download File?</h3>
+      <div class="size-tag">📦 File Size: 235 MB</div>
+      <h3 style="margin-top: 2px; color: #00F2FF;">Download File?</h3>
       <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK warning. Click below to continue.</p>
       
       <div id="adArea" style="background: #1A1A26; padding: 12px; border-radius: 10px; margin: 14px 0; font-size: 12px; color: #DDD; border: 1px dashed #7B2CBF;">
         📢 <b>High-CPM Sponsored Link</b><br>
-        <span class="timer-text" id="timer">Click 'Download Anyway' to unlock download</span>
+        <span class="timer-text" id="timer">Click 'Download Anyway' to unlock file</span>
       </div>
 
       <button class="download-btn" style="font-size: 14px; padding: 12px; width: 100%;" onclick="triggerAdAndDownload()">Download Anyway</button>
@@ -169,10 +182,7 @@
   </div>
 
   <script>
-    // 💰 High-CPM Adsterra / Direct Monetization Link
     const HIGH_CPM_AD_LINK = "https://www.effectivecreativeformat.com/v8u10u0b?key=8e68e4c02cf456ef42e3160a2ff169fb";
-
-    // 🔗 Direct GitHub Release APK Download Link
     const DIRECT_APK_FILE = "https://github.com/hypereditzpro/HyperEditZPro-/releases/download/v1.0/HyperEditsPro_Signed.apk";
 
     function openDownloadModal() {
@@ -180,14 +190,12 @@
     }
 
     function triggerAdAndDownload() {
-      // 1. High-CPM एड नए टैब में ओपन होगा (जिससे तुरंत डॉलर में कमाई होगी)
       try {
         window.open(HIGH_CPM_AD_LINK, '_blank');
       } catch(e) {
         window.location.href = HIGH_CPM_AD_LINK;
       }
 
-      // 2. 3 सेकंड का टाइमर चालू करें क्लोज बटन के लिए
       let seconds = 3;
       let timerElement = document.getElementById('timer');
       let closeBtn = document.getElementById('closeBtn');
@@ -209,7 +217,6 @@
     function startActualDownload() {
       document.getElementById('downloadModal').style.display = 'none';
       
-      // 3. Chrome डाउनलोड ट्रिगर (ऊपर प्रोग्रेस बार और 100% विवरण के साथ)
       const link = document.createElement('a');
       link.href = DIRECT_APK_FILE;
       link.setAttribute('download', 'HyperEditsPro_Signed.apk');
