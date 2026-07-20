@@ -65,8 +65,8 @@
       display: none;
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(10, 10, 16, 0.9);
-      backdrop-filter: blur(6px);
+      background: rgba(10, 10, 16, 0.92);
+      backdrop-filter: blur(8px);
       justify-content: center;
       align-items: center;
       z-index: 1000;
@@ -81,20 +81,22 @@
       width: 85%;
       max-width: 320px;
       position: relative;
-      box-shadow: 0 0 30px rgba(0, 242, 255, 0.3);
+      box-shadow: 0 0 35px rgba(0, 242, 255, 0.4);
     }
 
     .close-btn {
       position: absolute;
       top: 10px; right: 12px;
-      background: #FF007F;
-      color: white;
+      background: #34C759;
+      color: #000;
       border: none;
       border-radius: 50%;
-      width: 28px; height: 28px;
+      width: 32px; height: 32px;
       cursor: pointer;
       display: none;
-      font-weight: bold;
+      font-weight: 900;
+      font-size: 18px;
+      box-shadow: 0 0 10px rgba(52, 199, 89, 0.8);
     }
 
     .timer-text { font-size: 12px; color: #FF007F; margin-top: 6px; font-weight: bold; }
@@ -147,13 +149,13 @@
   <!-- DOWNLOAD ANYWAY MODAL POPUP -->
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-box">
-      <button class="close-btn" id="closeBtn" onclick="closeModalAndDownload()">✓</button>
+      <button class="close-btn" id="closeBtn" onclick="startActualDownload()">✓</button>
       <h3 style="margin-top: 5px; color: #00F2FF;">Download File?</h3>
-      <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK file warning. Click below to continue.</p>
+      <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK warning. Click below to continue.</p>
       
       <div id="adArea" style="background: #1A1A26; padding: 12px; border-radius: 10px; margin: 14px 0; font-size: 12px; color: #DDD; border: 1px dashed #7B2CBF;">
-        📢 <b>Monetized Download Area</b><br>
-        <span class="timer-text" id="timer">Please wait 3 seconds...</span>
+        📢 <b>High-CPM Sponsored Link</b><br>
+        <span class="timer-text" id="timer">Click 'Download Anyway' to unlock download</span>
       </div>
 
       <button class="download-btn" style="font-size: 14px; padding: 12px; width: 100%;" onclick="triggerAdAndDownload()">Download Anyway</button>
@@ -167,37 +169,53 @@
   </div>
 
   <script>
+    // 💰 High-CPM Adsterra / Direct Monetization Link
+    const HIGH_CPM_AD_LINK = "https://www.effectivecreativeformat.com/v8u10u0b?key=8e68e4c02cf456ef42e3160a2ff169fb";
+
+    // 🔗 Direct GitHub Release APK Download Link
+    const DIRECT_APK_FILE = "https://github.com/hypereditzpro/HyperEditZPro-/releases/download/v1.0/HyperEditsPro_Signed.apk";
+
     function openDownloadModal() {
       document.getElementById('downloadModal').style.display = 'flex';
     }
 
     function triggerAdAndDownload() {
-      // Ad Direct Link (Replace with Adsterra / Popunder Link)
-      window.open('https://google.com', '_blank');
+      // 1. High-CPM एड नए टैब में ओपन होगा (जिससे तुरंत डॉलर में कमाई होगी)
+      try {
+        window.open(HIGH_CPM_AD_LINK, '_blank');
+      } catch(e) {
+        window.location.href = HIGH_CPM_AD_LINK;
+      }
 
+      // 2. 3 सेकंड का टाइमर चालू करें क्लोज बटन के लिए
       let seconds = 3;
       let timerElement = document.getElementById('timer');
       let closeBtn = document.getElementById('closeBtn');
 
-      timerElement.innerText = "Closing button in " + seconds + " seconds...";
+      timerElement.innerText = "Green ✓ button in " + seconds + "s...";
 
       let interval = setInterval(() => {
         seconds--;
         if (seconds > 0) {
-          timerElement.innerText = "Closing button in " + seconds + " seconds...";
+          timerElement.innerText = "Green ✓ button in " + seconds + "s...";
         } else {
           clearInterval(interval);
-          timerElement.innerText = "Ready! Click ✓ to start downloading.";
+          timerElement.innerText = "Ready! Click green ✓ to start download!";
           closeBtn.style.display = 'block';
         }
       }, 1000);
     }
 
-    function closeModalAndDownload() {
+    function startActualDownload() {
       document.getElementById('downloadModal').style.display = 'none';
-      alert("Starting APK Download...");
-      // Add your APK link below when ready:
-      // window.location.href = "HyperEditsPro_Signed.apk";
+      
+      // 3. Chrome डाउनलोड ट्रिगर (ऊपर प्रोग्रेस बार और 100% विवरण के साथ)
+      const link = document.createElement('a');
+      link.href = DIRECT_APK_FILE;
+      link.setAttribute('download', 'HyperEditsPro_Signed.apk');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   </script>
 
