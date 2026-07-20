@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HyperEdits Pro - Ultimate Gaming Montage Editor</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #0A0A10; color: #FFFFFF; text-align: center; overflow-x: hidden; padding-bottom: 40px; }
+    
+    .hero-banner {
+      padding: 50px 20px;
+      background: radial-gradient(circle at top, rgba(123, 44, 191, 0.4) 0%, rgba(10, 10, 16, 1) 70%);
+      border-bottom: 2px solid #00F2FF;
+    }
+    .logo-title { font-size: 30px; font-weight: 900; color: #00F2FF; text-shadow: 0 0 15px rgba(0, 242, 255, 0.8); }
+    .tagline { font-size: 13px; color: #AAA; margin-top: 8px; font-weight: 600; }
+    
+    .ad-badge {
+      display: inline-block;
+      margin: 18px 0;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #7B2CBF 0%, #FF007F 100%);
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 15px rgba(255, 0, 127, 0.5);
+    }
+
+    .download-btn {
+      display: inline-block;
+      padding: 16px 36px;
+      background: linear-gradient(135deg, #00F2FF 0%, #34C759 100%);
+      color: #000;
+      font-size: 16px;
+      font-weight: 900;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 25px rgba(0, 242, 255, 0.6);
+      transition: transform 0.2s ease;
+      width: 85%;
+      max-width: 320px;
+    }
+    .download-btn:active { transform: scale(0.95); }
+
+    .features-grid { padding: 30px 20px; display: grid; grid-template-columns: 1fr; gap: 16px; max-width: 600px; margin: auto; }
+    .feature-card {
+      background: #12121A;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: left;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    }
+    .feature-card h3 { color: #00F2FF; font-size: 15px; margin-bottom: 6px; }
+    .feature-card p { color: #AAA; font-size: 12px; line-height: 1.5; }
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(10, 10, 16, 0.92);
+      backdrop-filter: blur(8px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-box {
+      background: #12121A;
+      border: 1px solid #00F2FF;
+      padding: 22px;
+      border-radius: 18px;
+      text-align: center;
+      width: 85%;
+      max-width: 320px;
+      position: relative;
+      box-shadow: 0 0 35px rgba(0, 242, 255, 0.4);
+    }
+
+    .size-tag {
+      display: inline-block;
+      background: #1F1938;
+      color: #00F2FF;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      border: 1px solid rgba(0, 242, 255, 0.3);
+    }
+
+    .footer-badge { padding: 30px 20px; font-size: 11px; color: #666; border-top: 1px solid #1C1C24; margin-top: 20px; }
+    .verified-icon { color: #34C759; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+  <div class="hero-banner">
+    <div class="logo-title">🔥 HYPEREDITS PRO 🇮🇳</div>
+    <div class="tagline">CapCut Level Montage Editing • Ultra High-FPS Export</div>
+    
+    <div class="ad-badge">🎁 Special Offer: Free Pro VIP Access Unlocked!</div>
+    <br>
+    <button class="download-btn" onclick="openDownloadModal()">⚡ DOWNLOAD APK (Ver 1.0)</button>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <h3>🤖 AI Auto Beat Sync & Velocity Ramp</h3>
+      <p>Automatically scans audio peaks, sets yellow beat dots, and applies 0.2x Optical Slow-Mo on killshots.</p>
+    </div>
+
+    <div class="feature-card">
+      <h3>📈 Keyframe Bezier Velocity Curves</h3>
+      <p>Custom motion curves with 6 unique presets: Headshot Snap, Quantum Pulse, and Cyber Stepped motion.</p>
+    </div>
+
+    <div class="feature-card">
+      <h3>🌈 Multi-Track Neon Glow & Color Shift</h3>
+      <p>Slide left/right to shift through 10+ montage colors with custom glow, sharpen filters, and clarity boosters.</p>
+    </div>
+
+    <div class="feature-card">
+      <h3>🎙️ AI Voice Isolation Studio</h3>
+      <p>Record crisp commentary. AI automatically isolates your voice and filters out fan/background noise.</p>
+    </div>
+
+    <div class="feature-card">
+      <h3>🗑️ 30-Day Project Recycle Bin</h3>
+      <p>Never lose your work. Deleted projects stay safe in the Recycle Bin for 30 days with 1-tap restoration.</p>
+    </div>
+  </div>
+
+  <!-- POPUP MODAL -->
+  <div class="modal-overlay" id="downloadModal">
+    <div class="modal-box">
+      <div class="size-tag">📦 File Size: 235 MB</div>
+      <h3 style="margin-top: 2px; color: #00F2FF;">Download File?</h3>
+      <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK warning. Click below to download.</p>
+      
+      <div style="background: #1A1A26; padding: 12px; border-radius: 10px; margin: 14px 0; font-size: 12px; color: #DDD; border: 1px dashed #7B2CBF;">
+        📢 <b>HyperEdits Pro Official File</b><br>
+        <span style="font-size:11px; color:#34C759;">✓ 100% Virus-Free & Safe</span>
+      </div>
+
+      <!-- Direct Download Trigger -->
+      <a href="HyperEditsPro.apk" download="HyperEditsPro.apk" class="download-btn" style="font-size: 15px; padding: 12px; width: 100%; text-decoration: none; display: inline-block; line-height: 20px;" onclick="closeModal()">Download Anyway</a>
+    </div>
+  </div>
+
+  <div class="footer-badge">
+    <span class="verified-icon">✓ Verified Malware-Free File</span> • Play Protect Safe<br>
+    © 2026 HyperEdits Pro. All rights reserved.
+  </div>
+
+  <script>
+    function openDownloadModal() {
+      document.getElementById('downloadModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      setTimeout(() => {
+        document.getElementById('downloadModal').style.display = 'none';
+      }, 500);
+    }
+  </script>
+
+</body>
+</html>
