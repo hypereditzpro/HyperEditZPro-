@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -79,21 +79,6 @@
       box-shadow: 0 0 35px rgba(0, 242, 255, 0.4);
     }
 
-    .close-btn {
-      position: absolute;
-      top: 10px; right: 12px;
-      background: #34C759;
-      color: #000;
-      border: none;
-      border-radius: 50%;
-      width: 34px; height: 34px;
-      cursor: pointer;
-      display: none;
-      font-weight: 900;
-      font-size: 20px;
-      box-shadow: 0 0 12px rgba(52, 199, 89, 0.9);
-    }
-
     .size-tag {
       display: inline-block;
       background: #1F1938;
@@ -105,8 +90,6 @@
       margin-bottom: 10px;
       border: 1px solid rgba(0, 242, 255, 0.3);
     }
-
-    .timer-text { font-size: 12px; color: #FF007F; margin-top: 6px; font-weight: bold; }
 
     .footer-badge { padding: 30px 20px; font-size: 11px; color: #666; border-top: 1px solid #1C1C24; margin-top: 20px; }
     .verified-icon { color: #34C759; font-weight: bold; }
@@ -150,19 +133,20 @@
     </div>
   </div>
 
+  <!-- POPUP MODAL -->
   <div class="modal-overlay" id="downloadModal">
     <div class="modal-box">
-      <button class="close-btn" id="closeBtn" onclick="startActualDownload()">✓</button>
       <div class="size-tag">📦 File Size: 235 MB</div>
       <h3 style="margin-top: 2px; color: #00F2FF;">Download File?</h3>
-      <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK warning. Click below to continue.</p>
+      <p style="font-size: 12px; color: #AAA; margin-top: 4px;">Standard APK warning. Click below to download.</p>
       
-      <div id="adArea" style="background: #1A1A26; padding: 12px; border-radius: 10px; margin: 14px 0; font-size: 12px; color: #DDD; border: 1px dashed #7B2CBF;">
-        📢 <b>HyperEdits Official Download</b><br>
-        <span class="timer-text" id="timer">Click 'Download' to start file transfer</span>
+      <div style="background: #1A1A26; padding: 12px; border-radius: 10px; margin: 14px 0; font-size: 12px; color: #DDD; border: 1px dashed #7B2CBF;">
+        📢 <b>HyperEdits Pro Official File</b><br>
+        <span style="font-size:11px; color:#34C759;">✓ 100% Virus-Free & Safe</span>
       </div>
 
-      <button class="download-btn" style="font-size: 14px; padding: 12px; width: 100%;" onclick="triggerAdAndDownload()">Download</button>
+      <!-- Direct Download Action Trigger -->
+      <a href="HyperEditsPro.apk" download="HyperEditsPro.apk" class="download-btn" style="font-size: 15px; padding: 12px; width: 100%; text-decoration: none; display: inline-block; line-height: 20px;" onclick="closeModal()">Download Anyway</a>
     </div>
   </div>
 
@@ -176,36 +160,10 @@
       document.getElementById('downloadModal').style.display = 'flex';
     }
 
-    function triggerAdAndDownload() {
-      // 1. टाइमर स्टार्ट - कोई external white-screen link नहीं
-      let seconds = 3;
-      let timerElement = document.getElementById('timer');
-      let closeBtn = document.getElementById('closeBtn');
-
-      timerElement.innerText = "Preparing file link in " + seconds + "s...";
-
-      let interval = setInterval(() => {
-        seconds--;
-        if (seconds > 0) {
-          timerElement.innerText = "Preparing file link in " + seconds + "s...";
-        } else {
-          clearInterval(interval);
-          timerElement.innerText = "Ready! Click green ✓ to save APK!";
-          closeBtn.style.display = 'block';
-        }
-      }, 1000);
-    }
-
-    function startActualDownload() {
-      document.getElementById('downloadModal').style.display = 'none';
-      
-      // 2. डायरेक्ट मेन वेबसाइट स्क्रीन से क्रोम डाउनलोड ट्रिगर
-      const link = document.createElement('a');
-      link.href = 'HyperEditsPro.apk';
-      link.setAttribute('download', 'HyperEditsPro.apk');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    function closeModal() {
+      setTimeout(() => {
+        document.getElementById('downloadModal').style.display = 'none';
+      }, 500);
     }
   </script>
 
