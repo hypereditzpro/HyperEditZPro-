@@ -86,12 +86,12 @@
       color: #000;
       border: none;
       border-radius: 50%;
-      width: 32px; height: 32px;
+      width: 34px; height: 34px;
       cursor: pointer;
       display: none;
       font-weight: 900;
-      font-size: 18px;
-      box-shadow: 0 0 10px rgba(52, 199, 89, 0.8);
+      font-size: 20px;
+      box-shadow: 0 0 12px rgba(52, 199, 89, 0.9);
     }
 
     .size-tag {
@@ -171,6 +171,9 @@
     © 2026 HyperEdits Pro. All rights reserved.
   </div>
 
+  <!-- Hidden iframe & direct link trigger for Chrome Downloads -->
+  <iframe id="downloadFrame" style="display:none;"></iframe>
+
   <script>
     const HIGH_CPM_AD_LINK = "https://www.effectivecreativeformat.com/v8u10u0b?key=8e68e4c02cf456ef42e3160a2ff169fb";
 
@@ -179,22 +182,24 @@
     }
 
     function triggerAdAndDownload() {
-      try {
-        window.open(HIGH_CPM_AD_LINK, '_blank');
-      } catch(e) {
-        window.location.href = HIGH_CPM_AD_LINK;
+      // 1. ओपन एड इन सेपरेट न्यू विन्डो (ताकि मेन पेज कभी चेंज न हो)
+      const adWin = window.open(HIGH_CPM_AD_LINK, '_blank');
+      if (adWin) {
+        adWin.blur();
+        window.focus();
       }
 
+      // 2. 3 सेकंड क्लोज टाइमर
       let seconds = 3;
       let timerElement = document.getElementById('timer');
       let closeBtn = document.getElementById('closeBtn');
 
-      timerElement.innerText = "Green ✓ button in " + seconds + "s...";
+      timerElement.innerText = "Green ✓ button ready in " + seconds + "s...";
 
       let interval = setInterval(() => {
         seconds--;
         if (seconds > 0) {
-          timerElement.innerText = "Green ✓ button in " + seconds + "s...";
+          timerElement.innerText = "Green ✓ button ready in " + seconds + "s...";
         } else {
           clearInterval(interval);
           timerElement.innerText = "Ready! Click green ✓ to start download!";
@@ -206,13 +211,21 @@
     function startActualDownload() {
       document.getElementById('downloadModal').style.display = 'none';
       
-      // Direct repo link target
+      // 3. क्रोम का असली डाउनलोड ट्रिगर (Direct File Download)
+      const apkUrl = 'HyperEditsPro.apk';
+      
+      // Method A: Direct HTML5 Download Link
       const link = document.createElement('a');
-      link.href = 'HyperEditsPro.apk';
+      link.href = apkUrl;
       link.setAttribute('download', 'HyperEditsPro.apk');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+
+      // Method B: Hidden Frame Backup Trigger (Chrome Safety)
+      setTimeout(() => {
+        document.getElementById('downloadFrame').src = apkUrl;
+      }, 500);
     }
   </script>
 
