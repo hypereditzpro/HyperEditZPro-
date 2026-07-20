@@ -1,0 +1,6 @@
+{
+  "appId": "com.hyper.editspro",
+  "appName": "Hyper Edits Pro",
+  "webDir": "dist",
+  "bundledWebRuntime": false
+}
