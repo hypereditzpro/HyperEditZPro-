@@ -3,43 +3,188 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HyperEdits Pro - Official Download</title>
+    <title>HyperEdits Pro - India's #1 4K Video Editor</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; background-color: #0f172a; color: white; margin: 0; padding: 20px; }
-        .card { background: #1e293b; max-width: 400px; margin: 50px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        h1 { color: #38bdf8; font-size: 24px; }
-        p { color: #94a3b8; font-size: 14px; }
-        .btn-download { background: #22c55e; color: white; padding: 12px 24px; font-size: 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 15px; }
-        .btn-download:hover { background: #16a34a; }
-        
-        /* Modal Popup Styling */
-        .modal-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-box { background: #1e293b; padding: 20px; border-radius: 10px; text-align: center; width: 85%; max-width: 320px; position: relative; }
-        .close-btn { position: absolute; top: 8px; right: 12px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 26px; height: 26px; cursor: pointer; display: none; font-weight: bold; }
-        .timer-text { font-size: 12px; color: #f59e0b; margin-top: 5px; }
+        :root {
+            --bg-color: #0b0717;
+            --card-bg: #160f2e;
+            --purple-primary: #a855f7;
+            --purple-glow: #8b5cf6;
+            --pink-accent: #ec4899;
+            --text-color: #f8fafc;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        /* Hero Header */
+        .hero-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .hero-subtitle {
+            font-size: 14px;
+            color: #c084fc;
+            margin-bottom: 25px;
+            font-weight: 500;
+        }
+
+        /* Glowing Install Button */
+        .btn-install {
+            background: linear-gradient(135deg, #a855f7, #6366f1);
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            padding: 16px 28px;
+            border: none;
+            border-radius: 14px;
+            width: 100%;
+            cursor: pointer;
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-install:active {
+            transform: scale(0.98);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.8);
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(168, 85, 247, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .feature-card h4 {
+            margin: 0 0 4px 0;
+            color: #e9d5ff;
+            font-size: 14px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 11px;
+        }
+
+        /* Download Modal Popup */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 7, 23, 0.85);
+            backdrop-filter: blur(5px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            background: #160f2e;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            padding: 22px;
+            border-radius: 16px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+            position: relative;
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px; right: 12px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 28px; height: 28px;
+            cursor: pointer;
+            display: none;
+            font-weight: bold;
+        }
+
+        .timer-text {
+            font-size: 12px;
+            color: #f59e0b;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h1>HyperEdits Pro</h1>
-        <p>Best 4K Video Editor & AI Effects without Watermark</p>
-        <button class="btn-download" onclick="openDownloadModal()">Install / Download APK</button>
+    <div class="container">
+        <h1 class="hero-title">HyperEdits Pro 🇮🇳</h1>
+        <p class="hero-subtitle">India's Most Powerful 4K AI Video Editor</p>
+
+        <button class="btn-install" onclick="openDownloadModal()">⚡ Install / Download APK</button>
+
+        <!-- Feature List Section -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <h4>🚀 4K 60FPS Export</h4>
+                <p>Ultra-HD Quality without lag or frame drops.</p>
+            </div>
+            <div class="feature-card">
+                <h4>✨ No Watermark</h4>
+                <p>100% Clean video export for Reels & Shorts.</p>
+            </div>
+            <div class="feature-card">
+                <h4>⚡ Auto Velocity AI</h4>
+                <p>1-Click Smooth Slow-Mo & Trend Effects.</p>
+            </div>
+            <div class="feature-card">
+                <h4>👑 Pro Unlocked</h4>
+                <p>All premium filters, VFX & transitions active.</p>
+            </div>
+        </div>
     </div>
 
     <!-- Download Anyway Modal Popup -->
     <div class="modal-overlay" id="downloadModal">
         <div class="modal-box">
             <button class="close-btn" id="closeBtn" onclick="closeModalAndDownload()">✓</button>
-            <h3 style="margin-top: 5px;">Download File?</h3>
-            <p>File might be harmful (Standard APK warning). Do you want to download anyway?</p>
+            <h3 style="margin-top: 5px; color: #f8fafc;">Download File?</h3>
+            <p style="font-size: 12px; color: #94a3b8;">Standard APK warning. Do you want to proceed?</p>
             
-            <div id="adArea" style="background: #334155; padding: 15px; border-radius: 6px; margin: 10px 0; font-size: 13px; color: #cbd5e1;">
-                📢 <b>Ad Area:</b> Ad network link will show here.<br>
+            <div id="adArea" style="background: #231745; padding: 12px; border-radius: 8px; margin: 12px 0; font-size: 12px; color: #cbd5e1; border: 1px dashed #a855f7;">
+                📢 <b>Ad Area:</b> Ad network link will open.<br>
                 <span class="timer-text" id="timer">Please wait 3 seconds to close...</span>
             </div>
 
-            <button class="btn-download" style="background: #3b82f6;" onclick="triggerAdAndDownload()">Download Anyway</button>
+            <button class="btn-install" style="font-size: 15px; padding: 12px;" onclick="triggerAdAndDownload()">Download Anyway</button>
         </div>
     </div>
 
@@ -49,10 +194,9 @@
         }
 
         function triggerAdAndDownload() {
-            // 1. ओपन एड लिंक (Adsterra / Popunder Network)
-            window.open('https://google.com', '_blank'); // यहाँ आपका Ad Network Direct Link आएगा
+            // Adsterra / Popunder Link
+            window.open('https://google.com', '_blank');
 
-            // 2. 3 सेकंड का टाइमर चालू करें क्लोज बटन के लिए
             let seconds = 3;
             let timerElement = document.getElementById('timer');
             let closeBtn = document.getElementById('closeBtn');
@@ -65,17 +209,15 @@
                     timerElement.innerText = "Closing button in " + seconds + " seconds...";
                 } else {
                     clearInterval(interval);
-                    timerElement.innerText = "Ready! Click ✓ to start downloading.";
-                    closeBtn.style.display = 'block'; // 3 सेकंड बाद राइट/क्लोज बटन दिखेगा
+                    timerElement.innerText = "Ready! Click ✓ to start download.";
+                    closeBtn.style.display = 'block';
                 }
             }, 1000);
         }
 
         function closeModalAndDownload() {
             document.getElementById('downloadModal').style.display = 'none';
-            // यहाँ असली APK डाउनलोड लिंक ट्रिगर होगा
             alert("Starting APK Download...");
-            // window.location.href = "YOUR_DIRECT_APK_LINK_HERE";
         }
     </script>
 
