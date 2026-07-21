@@ -1,38 +1,51 @@
 import React, { useState, useEffect } from 'react';
+import EditorFeatures from './EditorFeatures';
+import Auth from './Auth';
 import UserProfileHistory from './UserProfileHistory';
 import PowerPaymentEngine from './PowerPaymentEngine';
 
 export default function App() {
   const [isAppMode, setIsAppMode] = useState<boolean>(false);
-  const [showPayment, setShowPayment] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('mode') === 'app' || window.location.search.includes('mode=app')) {
+    // Check if secret app mode is active
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('mode') === 'app' || window.location.search.includes('mode=app')) {
       setIsAppMode(true);
     }
   }, []);
 
+  // DIRECT SECRET APP MODE (When ?mode=app is opened by you)
   if (isAppMode) {
     return (
-      <div style={{ background: '#0A0A10', minHeight: '100vh', color: '#FFF', padding: '16px', fontFamily: 'sans-serif', boxSizing: 'border-box' }}>
+      <div style={{ background: '#0A0A10', minHeight: '100vh', color: '#FFF', padding: '16px', fontFamily: 'Segoe UI, sans-serif', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: '480px', margin: '0 auto' }}>
-          <div style={{ background: '#12121A', border: '1px solid #00F2FF', borderRadius: '16px', padding: '16px', marginBottom: '16px', textAlign: 'center' }}>
-            <h2 style={{ color: '#00F2FF', margin: '0 0 6px 0', fontSize: '1.2rem' }}>👑 HyperEdits Pro Studio</h2>
-            <p style={{ color: '#34C759', fontSize: '0.8rem', margin: '0 0 12px 0', fontWeight: 'bold' }}>⚡ UPI Receiver Synced: 9549753157@nyes</p>
-            <button onClick={() => setShowPayment(true)} style={{ background: 'linear-gradient(135deg, #00F2FF, #34C759)', color: '#000', border: 'none', padding: '10px 16px', borderRadius: '10px', fontWeight: '900', fontSize: '0.8rem', cursor: 'pointer', width: '100%' }}>
-              💳 Open VIP Payment & Token Engine (₹1)
+          
+          {/* TOP VIP APP BAR */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#12121A', padding: '12px 16px', borderRadius: '14px', border: '1px solid #00F2FF', boxShadow: '0 0 15px rgba(0,242,255,0.2)' }}>
+            <div>
+              <h3 style={{ color: '#00F2FF', margin: 0, fontSize: '1rem', fontWeight: 'bold' }}>⚡ HYPEREDITS PRO</h3>
+              <span style={{ color: '#34C759', fontSize: '0.7rem', fontWeight: 'bold' }}>Merchant: 9549753157@nyes</span>
+            </div>
+            <button onClick={() => setShowPaymentModal(true)} style={{ background: 'linear-gradient(135deg, #00F2FF, #34C759)', color: '#000', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '900', fontSize: '0.75rem', cursor: 'pointer' }}>
+              💳 VIP Payment
             </button>
           </div>
 
+          {/* USER PROFILE & TOKEN HISTORY */}
           <UserProfileHistory />
 
-          {showPayment && (
+          {/* MAIN AI STUDIO WORKSPACE */}
+          <Auth />
+
+          {/* SYNCED PAYMENT ENGINE MODAL */}
+          {showPaymentModal && (
             <PowerPaymentEngine 
               userNameOrPhone="9549753157" 
               amount="1" 
               onPaymentSuccess={() => {}} 
-              onClose={() => setShowPayment(false)} 
+              onClose={() => setShowPaymentModal(false)} 
             />
           )}
         </div>
@@ -40,12 +53,6 @@ export default function App() {
     );
   }
 
-  // Default Landing Page fallback
-  return (
-    <div style={{ background: '#0A0A10', minHeight: '100vh', color: '#FFF', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', padding: '20px', textAlign: 'center', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: '#00F2FF', fontSize: '2rem' }}>HYPEREDITS PRO</h1>
-      <p style={{ color: '#FF007F', fontWeight: 'bold' }}>AI Gaming Studio & Creator Hub</p>
-      <p style={{ color: '#AAA', fontSize: '0.8rem', marginTop: '10px' }}>To access your private studio, use your secret app mode link.</p>
-    </div>
-  );
+  // DEFAULT OFFICIAL LANDING PAGE (For Public / Instagram Visitors)
+  return <EditorFeatures />;
 }
