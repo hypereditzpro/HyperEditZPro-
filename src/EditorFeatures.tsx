@@ -6,10 +6,10 @@ export default function EditorFeatures() {
   const [totalDuration, setTotalDuration] = useState(18);
   const [isMuted, setIsMuted] = useState(false);
   
-  // Active Bottom Tool
+  // Active Bottom Tool Modal
   const [activeBottomTool, setActiveBottomTool] = useState<string | null>(null);
   
-  // Background Submenu Tabs (Color, Image, Blur, Brand, AI Auto Match)
+  // Background Submenu States
   const [selectedBgTab, setSelectedBgTab] = useState<'Color' | 'Image' | 'Blur' | 'Brand' | 'AI'>('Color');
   const [selectedColor, setSelectedColor] = useState('#000000');
   const [blurLevel, setBlurLevel] = useState(0);
@@ -44,9 +44,8 @@ export default function EditorFeatures() {
     return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // AI Smart Background Analyzer
+  // 1. AI Smart Background Analyzer
   const handleAiAutoMatch = () => {
-    // Detects clip mood and applies optimal gaming neon gradient
     const smartGradients = [
       'linear-gradient(135deg, #1A0B2E, #7000FF)',
       'linear-gradient(135deg, #001219, #00F2FF)',
@@ -58,6 +57,7 @@ export default function EditorFeatures() {
     alert('⚡ AI Video Analyzer: Clip lighting detected! Best matching background applied automatically.');
   };
 
+  // 2. Reset Background Function
   const handleResetBg = () => {
     setAiMatchedBg(null);
     setSelectedColor('#000000');
@@ -68,15 +68,14 @@ export default function EditorFeatures() {
   return (
     <div style={{ background: '#0D0E12', minHeight: '100vh', color: '#FFF', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingBottom: '20px' }}>
       
-      {/* 1. TOP PLAYER CANVAS AREA WITH DYNAMIC BACKGROUND */}
+      {/* PLAYER CANVAS AREA WITH DYNAMIC BACKGROUND */}
       <div style={{ position: 'relative', width: '100%', height: '320px', background: aiMatchedBg || selectedColor, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', borderBottom: '1px solid #222431', overflow: 'hidden', transition: 'all 0.3s ease' }}>
         
-        {/* Instruction Overlay */}
         <div style={{ position: 'absolute', top: '10px', fontSize: '11px', color: '#AAA', background: 'rgba(0,0,0,0.6)', padding: '4px 10px', borderRadius: '12px' }}>
           Use both fingers to resize your video
         </div>
 
-        {/* Video Canvas Box */}
+        {/* Video Frame */}
         <div style={{ 
           width: aspectRatio === '9:16' ? '170px' : aspectRatio === '16:9' ? '280px' : aspectRatio === '1:1' ? '200px' : '190px', 
           height: aspectRatio === '9:16' ? '230px' : aspectRatio === '16:9' ? '160px' : '200px', 
@@ -97,7 +96,7 @@ export default function EditorFeatures() {
         </div>
       </div>
 
-      {/* 2. PLAYBACK CONTROLLER & LIVE TIMECODE COUNTER BAR */}
+      {/* PLAYBACK CONTROLLER & LIVE SECONDS TIMECODE */}
       <div style={{ padding: '8px 16px', background: '#14151C', borderBottom: '1px solid #222431', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <button style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '16px', cursor: 'pointer' }}>🔲</button>
 
@@ -115,7 +114,7 @@ export default function EditorFeatures() {
         </div>
       </div>
 
-      {/* 3. CAPCUT LIVE SECONDS TIMECODE + RULER TRACK */}
+      {/* LIVE SECONDS TIMECODE + RULER TRACK */}
       <div style={{ padding: '6px 16px', background: '#0D0E12', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1A1C24' }}>
         <div style={{ fontSize: '11px', color: '#AAA', fontFamily: 'monospace' }}>
           <span style={{ color: '#FFF', fontWeight: 'bold' }}>{formatTime(currentTime)}</span> / {formatTime(totalDuration)}
@@ -130,7 +129,7 @@ export default function EditorFeatures() {
         </div>
       </div>
 
-      {/* 4. 4-TRACK TIMELINE WORKSPACE */}
+      {/* 4-TRACK TIMELINE WORKSPACE */}
       <div style={{ padding: '12px', background: '#101117', display: 'flex', gap: '10px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '60px', alignItems: 'center' }}>
           <button 
@@ -165,13 +164,12 @@ export default function EditorFeatures() {
         </div>
       </div>
 
-      {/* 5. SUB-MENU DRAWER FOR CANVAS BACKGROUND */}
+      {/* BACKGROUND SUB-MENU DRAWER */}
       {activeBottomTool === 'Background' && (
         <div style={{ background: '#14151C', borderTop: '1px solid #222431', padding: '14px 16px', animation: 'slideUp 0.2s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
             <span style={{ fontSize: '13px', fontWeight: 'bold', color: '#00F2FF' }}>🎨 Canvas Background Engine</span>
             
-            {/* Reset Button */}
             <button 
               onClick={handleResetBg} 
               style={{ background: '#222431', border: '1px solid #333648', color: '#FF4D4D', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer', fontWeight: 'bold' }}
@@ -196,7 +194,6 @@ export default function EditorFeatures() {
             ))}
           </div>
 
-          {/* Color Selector */}
           {selectedBgTab === 'Color' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               {['#000000', '#1A1C24', '#7000FF', '#00F2FF', '#FF9500', '#FF4D4D', '#1A2639'].map((c) => (
@@ -209,7 +206,6 @@ export default function EditorFeatures() {
             </div>
           )}
 
-          {/* AI Auto Match Indicator */}
           {selectedBgTab === 'AI' && (
             <div style={{ background: '#1A1C24', padding: '10px', borderRadius: '8px', border: '1px dashed #00F2FF', fontSize: '11px', color: '#FFF', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span>⚡ AI Smart Match Active! Video lighting analyzed.</span>
@@ -217,7 +213,6 @@ export default function EditorFeatures() {
             </div>
           )}
 
-          {/* Blur Selector */}
           {selectedBgTab === 'Blur' && (
             <div style={{ display: 'flex', gap: '10px' }}>
               {[0, 2, 5, 10, 15].map((b) => (
@@ -230,7 +225,7 @@ export default function EditorFeatures() {
         </div>
       )}
 
-      {/* ASPECT RATIO SELECTION MODAL */}
+      {/* 3. ASPECT RATIO SELECTION MODAL */}
       {showAspectModal && (
         <div style={{ background: '#14151C', borderTop: '1px solid #222431', padding: '14px 16px', animation: 'slideUp 0.2s' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
@@ -260,7 +255,7 @@ export default function EditorFeatures() {
         </div>
       )}
 
-      {/* 6. CAPCUT BOTTOM NAVIGATION TOOLBAR */}
+      {/* CAPCUT BOTTOM NAVIGATION TOOLBAR */}
       <div style={{ background: '#14151C', borderTop: '1px solid #222431', padding: '10px 8px', display: 'flex', gap: '16px', overflowX: 'auto' }}>
         {[
           { name: 'Overlay', icon: '🖼️' },
