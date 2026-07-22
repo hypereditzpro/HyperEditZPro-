@@ -11,6 +11,9 @@ export default function App() {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'projects' | 'editor'>('projects');
   
+  // Dynamic VIP Status (Default FALSE - Only True after Payment)
+  const [isVipUser, setIsVipUser] = useState<boolean>(false);
+
   // Dynamic Projects State
   const [savedProjects, setSavedProjects] = useState<any[]>([]);
 
@@ -18,6 +21,12 @@ export default function App() {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('mode') === 'app' || window.location.search.includes('mode=app')) {
       setIsAppMode(true);
+    }
+    
+    // Check if VIP Token exists in LocalStorage
+    const vipToken = localStorage.getItem('hep_vip_active');
+    if (vipToken === 'true') {
+      setIsVipUser(true);
     }
   }, []);
 
@@ -31,20 +40,28 @@ export default function App() {
       {/* 1. TOP CAPCUT STYLE HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#14151C', borderBottom: '1px solid #222431' }}>
         
-        {/* Left: Profile Icon (Click opens Slide Drawer) */}
+        {/* Left: Profile Icon & Dynamic VIP Status */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div 
             onClick={() => setIsDrawerOpen(true)}
-            style={{ width: '34px', height: '34px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '14px', color: '#FFF', cursor: 'pointer', boxShadow: '0 0 10px rgba(0,242,255,0.3)' }}
+            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '15px', color: '#FFF', cursor: 'pointer', boxShadow: '0 0 10px rgba(0,242,255,0.4)', border: '2px solid #00F2FF' }}
           >
             H
           </div>
-          <button 
-            onClick={() => setShowPaymentModal(true)}
-            style={{ background: 'linear-gradient(90deg, #FF9500, #FF5E00)', border: 'none', color: '#FFF', fontSize: '10px', fontWeight: 'bold', padding: '4px 10px', borderRadius: '12px', cursor: 'pointer', boxShadow: '0 0 10px rgba(255,149,0,0.4)' }}
-          >
-            ⚡ PRO VIP
-          </button>
+
+          {/* Conditional VIP Badge Logic: Show Upgrade button if Free, Show PRO VIP Badge only if Subscribed */}
+          {isVipUser ? (
+            <span style={{ background: 'linear-gradient(90deg, #FF9500, #FF5E00)', color: '#FFF', fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '10px', boxShadow: '0 0 8px rgba(255,149,0,0.5)' }}>
+              ⚡ PRO VIP
+            </span>
+          ) : (
+            <button 
+              onClick={() => setShowPaymentModal(true)}
+              style={{ background: '#222431', border: '1px solid #FF9500', color: '#FF9500', fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '10px', cursor: 'pointer' }}
+            >
+              👑 Get VIP
+            </button>
+          )}
         </div>
 
         {/* Center: Brand Name */}
@@ -52,7 +69,7 @@ export default function App() {
           HYPEREDITS <span style={{ color: '#00F2FF' }}>PRO</span>
         </div>
 
-        {/* Right: History Icon & Menu Trigger */}
+        {/* Right: History & Menu Trigger */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <button 
             onClick={() => setShowHistoryModal(true)}
@@ -62,51 +79,61 @@ export default function App() {
           </button>
           <button 
             onClick={() => setIsDrawerOpen(true)}
-            style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '20px', cursor: 'pointer', padding: '0 4px' }}
+            style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '22px', cursor: 'pointer', padding: '0 4px' }}
           >
             ☰
           </button>
         </div>
       </div>
 
-      {/* 2. SIDE SLIDE-IN DRAWER MENU WITH ANIMATION */}
+      {/* 2. PROFILE & MENU SLIDE-IN DRAWER */}
       {isDrawerOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, display: 'flex' }}>
-          {/* Backdrop */}
+          {/* Backdrop Overlay */}
           <div 
             onClick={() => setIsDrawerOpen(false)}
-            style={{ position: 'absolute', width: '100%', height: '100%', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+            style={{ position: 'absolute', width: '100%', height: '100%', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(5px)' }}
           />
           
-          {/* Slide Drawer Content */}
-          <div style={{ position: 'relative', width: '280px', background: '#14151C', height: '100%', borderRight: '1px solid #222431', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 10001, boxShadow: '5px 0 25px rgba(0,0,0,0.8)' }}>
+          {/* Drawer Box */}
+          <div style={{ position: 'relative', width: '280px', background: '#14151C', height: '100%', borderRight: '1px solid #222431', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 10001, boxShadow: '5px 0 25px rgba(0,0,0,0.9)' }}>
             <div>
-              {/* Profile Card inside Drawer */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid #222431', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px' }}>H</div>
-                  <div>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#FFF' }}>Hitesh Sharma</div>
-                    <div style={{ fontSize: '10px', color: '#00F2FF' }}>Google Signed In</div>
-                  </div>
+              {/* Profile Card Header */}
+              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #222431', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+                  <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '20px', color: '#FFF' }}>H</div>
+                  <button onClick={() => alert("Profile Edit: Name & Avatar update feature")} style={{ background: '#222431', border: '1px solid #333648', color: '#00F2FF', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', cursor: 'pointer' }}>✏️ Edit</button>
                 </div>
-                <button style={{ background: '#222431', border: 'none', color: '#AAA', padding: '4px 8px', borderRadius: '6px', fontSize: '10px', cursor: 'pointer' }}>✏️ Edit</button>
+                <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#FFF' }}>Hitesh Sharma</div>
+                <div style={{ fontSize: '11px', color: isVipUser ? '#FF9500' : '#AAA', marginTop: '2px' }}>
+                  {isVipUser ? '⚡ PRO VIP Plan Active' : 'FREE USER (No Subscription)'}
+                </div>
               </div>
 
               {/* Menu List */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <div onClick={() => { setIsDrawerOpen(false); setShowPaymentModal(true); }} style={{ padding: '10px', background: '#1A1C24', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#FF9500', fontWeight: '600' }}>⚡ Upgrade to VIP</div>
-                <div onClick={() => { setIsDrawerOpen(false); setShowHistoryModal(true); }} style={{ padding: '10px', background: '#1A1C24', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#DDD' }}>📜 Payment & Token History</div>
-                <div onClick={() => { setIsDrawerOpen(false); setActiveTab('editor'); }} style={{ padding: '10px', background: '#1A1C24', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#DDD' }}>🎛️ AI Tools Workspace</div>
-                <div onClick={() => { setIsAppMode(false); }} style={{ padding: '10px', background: '#1A1C24', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', color: '#FF4D4D' }}>🔑 Account / Sign In Page</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {!isVipUser && (
+                  <div onClick={() => { setIsDrawerOpen(false); setShowPaymentModal(true); }} style={{ padding: '12px', background: 'linear-gradient(135deg, #2A1F0D, #1A1205)', border: '1px solid #FF950055', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#FF9500', fontWeight: 'bold' }}>
+                    ⚡ Get VIP Subscription
+                  </div>
+                )}
+                <div onClick={() => { setIsDrawerOpen(false); setShowHistoryModal(true); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#DDD' }}>
+                  📜 Payment & Token History
+                </div>
+                <div onClick={() => { setIsDrawerOpen(false); setActiveTab('editor'); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#DDD' }}>
+                  🎛️ AI Tools Workspace
+                </div>
+                <div onClick={() => { setIsAppMode(false); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#FF4D4D' }}>
+                  🔑 Account & Auth Page
+                </div>
               </div>
             </div>
 
-            {/* Close Button & Version */}
+            {/* Bottom Close Button */}
             <div>
               <button 
                 onClick={() => setIsDrawerOpen(false)}
-                style={{ width: '100%', padding: '10px', background: '#222431', border: 'none', color: '#FFF', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
+                style={{ width: '100%', padding: '12px', background: '#222431', border: 'none', color: '#FFF', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
               >
                 Close Menu ✕
               </button>
@@ -187,7 +214,7 @@ export default function App() {
           </div>
         )}
 
-        {/* FOOTER BLUE LEGAL LINKS */}
+        {/* FOOTER LEGAL LINKS */}
         <div style={{ textAlign: 'center', marginTop: '40px', borderTop: '1px solid #1A1C24', paddingTop: '16px' }}>
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', fontSize: '11px' }}>
             <a href="#privacy" onClick={(e) => { e.preventDefault(); alert("गोपनीयता नीति (Privacy Policy): HyperEdits Pro आपकी निजता का पूरा ध्यान रखता है।"); }} style={{ color: '#00F2FF', textDecoration: 'none' }}>गोपनीयता नीति (Privacy Policy)</a>
