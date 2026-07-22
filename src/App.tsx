@@ -1,498 +1,176 @@
-import React, { useState, useEffect, useRef } from 'react';
-import EditorFeatures from './EditorFeatures';
-import Auth from './Auth';
-import UserProfileHistory from './UserProfileHistory';
-import PowerPaymentEngine from './PowerPaymentEngine';
+import React, { useState, useEffect } from 'react';
 
 export default function App() {
-  const [isAppMode, setIsAppMode] = useState<boolean>(false);
-  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
-  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
-  const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
-  const [showLanguageModal, setShowLanguageModal] = useState<boolean>(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('English');
-  const [addDefaultEnding, setAddDefaultEnding] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<'projects' | 'editor' | 'templates'>('projects');
+  const [currentScreen, setCurrentScreen] = useState('dashboard');
+  const [photoEditActive, setPhotoEditActive] = useState(false);
+  const [selectedPhotoTool, setSelectedPhotoTool] = useState('');
   
-  // Gallery Picker Ref
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  // Profile & App States
-  const [userName, setUserName] = useState<string>('Hitesh Sharma');
-  const [isEditingName, setIsEditingName] = useState<boolean>(false);
-  const [showPolicyModal, setShowPolicyBrowser] = useState<boolean>(false);
-  const [activeProjectMenu, setActiveProjectMenu] = useState<number | null>(null);
-  const [isVipUser, setIsVipUser] = useState<boolean>(false);
-
-  // Floating AI Agent States
-  const [showAiAgentModal, setShowAiAgentModal] = useState<boolean>(false);
-  const [aiCommandInput, setAiCommandInput] = useState<string>('');
-  const [aiChatLogs, setAiChatLogs] = useState<any[]>([
-    { sender: 'ai', text: 'Namaste Hitesh! Main aapka AI Agent hu. Koi bhi editing command dein (उदा: "Add slowmo effect").' }
-  ]);
-  const [isListening, setIsListening] = useState<boolean>(false);
-
-  // Saved Projects & Recycle Bin
-  const [savedProjects, setSavedProjects] = useState<any[]>(() => {
-    const localData = localStorage.getItem('hyper_edits_projects');
-    return localData ? JSON.parse(localData) : [
-      { id: 101, title: 'FF_Headshot_Montage_01', date: '22/07/2026 14:15', size: '48 MB', duration: '00:15' }
+  // Persistent Auto-Save Projects Database
+  const [savedProjects, setSavedProjects] = useState(() => {
+    try {
+      const localData = localStorage.getItem('hyper_edits_projects');
+      if (localData) return JSON.parse(localData);
+    } catch (e) {
+      console.error(e);
+    }
+    return [
+      { name: 'FF_Montage_01', date: '22/07/2026 15:45', size: '42MB', len: '00:15', tag: '🎮' }
     ];
   });
-  
-  const [recycleBin, setRecycleBin] = useState<any[]>(() => {
-    const localBin = localStorage.getItem('hyper_edits_recycle_bin');
-    return localBin ? JSON.parse(localBin) : [];
-  });
-  const [showRecycleBinModal, setShowRecycleBinModal] = useState<boolean>(false);
-
-  const [userTemplates, setUserTemplates] = useState<any[]>(() => {
-    const localTeps = localStorage.getItem('hyper_edits_user_templates');
-    return localTeps ? JSON.parse(localTeps) : [];
-  });
-
-  const languagesList = [
-    'English', 'हिन्दी (Hindi)', 'राजस्थानी (Rajasthani)', 
-    'मराठी (Marathi)', 'ગુજરાતી (Gujarati)', 'पंजाबी (Punjabi)', 'বাংলা (Bengali)'
-  ];
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'app' || window.location.search.includes('mode=app')) {
-      setIsAppMode(true);
-    }
-    const vipToken = localStorage.getItem('hep_vip_active');
-    if (vipToken === 'true') {
-      setIsVipUser(true);
-    }
-  }, []);
-
-  const handleNewProjectClick = () => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-    } else {
-      setActiveTab('editor');
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setActiveTab('editor');
-    }
-  };
-
-  const moveToRecycleBin = (id: number) => {
-    const projToDelete = savedProjects.find(p => p.id === id);
-    if (projToDelete) {
-      const updatedProjects = savedProjects.filter(p => p.id !== id);
-      const updatedBin = [projToDelete, ...recycleBin];
-      setSavedProjects(updatedProjects);
-      setRecycleBin(updatedBin);
-      localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedProjects));
-      localStorage.setItem('hyper_edits_recycle_bin', JSON.stringify(updatedBin));
-      setActiveProjectMenu(null);
-      alert('🗑️ Project moved to Recycle Bin (30-Day limit)!');
-    }
-  };
-
-  const convertToTemplate = (proj: any) => {
-    const newTemplate = { ...proj, templateId: Date.now(), hasCropSupport: true };
-    const updatedTemplates = [newTemplate, ...userTemplates];
-    setUserTemplates(updatedTemplates);
-    localStorage.setItem('hyper_edits_user_templates', JSON.stringify(updatedTemplates));
-    setActiveProjectMenu(null);
-    alert(`🎬 "${proj.title}" converted into Template with Photo/Video Swap & Crop support!`);
-  };
-
-  const restoreProject = (id: number) => {
-    const itemToRestore = recycleBin.find(item => item.id === id);
-    if (itemToRestore) {
-      const updatedBin = recycleBin.filter(item => item.id !== id);
-      const updatedProjects = [itemToRestore, ...savedProjects];
-      setRecycleBin(updatedBin);
-      setSavedProjects(updatedProjects);
-      localStorage.setItem('hyper_edits_recycle_bin', JSON.stringify(updatedBin));
-      localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedProjects));
-      alert('✓ Project recovered successfully!');
-    }
-  };
-
-  // AI Agent Command Handler
-  const handleAiSendCommand = () => {
-    if (!aiCommandInput.trim()) return;
-    const userMsg = aiCommandInput;
-    setAiChatLogs(prev => [...prev, { sender: 'user', text: userMsg }]);
-    setAiCommandInput('');
-
-    setTimeout(() => {
-      let reply = `✓ Command Executed: "${userMsg}" applied to active timeline layer!`;
-      if (userMsg.toLowerCase().includes('slowmo')) reply = '⚡ Velocity SlowMo 4x applied successfully!';
-      if (userMsg.toLowerCase().includes('audio')) reply = '🎵 Audio track enhanced and noise suppressed!';
-      setAiChatLogs(prev => [...prev, { sender: 'ai', text: reply }]);
-    }, 800);
-  };
-
-  const handleVoiceListening = () => {
-    setIsListening(true);
-    alert('🎤 AI Voice Mic Active: Boliye aap kya command dena chahte hain...');
-    setTimeout(() => {
-      setIsListening(false);
-      setAiChatLogs(prev => [...prev, { sender: 'user', text: '🎙️ [Voice Command]: Apply Cyberpunk filter' }, { sender: 'ai', text: '✓ Cyberpunk Grade applied via Voice!' }]);
-    }, 2500);
-  };
-
-  if (!isAppMode) {
-    return <Auth onGuestAccess={() => setIsAppMode(true)} />;
-  }
 
   return (
-    <div style={{ background: '#0D0E12', minHeight: '100vh', color: '#FFF', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingBottom: '40px', position: 'relative', overflowX: 'hidden' }}>
+    <div style={{ backgroundColor: '#0A0A0C', minHeight: '100vh', color: '#FFF', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', boxSizing: 'border-box', overflowX: 'hidden' }}>
       
-      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*" style={{ display: 'none' }} />
-
-      {/* TOP HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#14151C', borderBottom: '1px solid #222431' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ position: 'relative' }}>
-            <div 
-              onClick={() => setIsDrawerOpen(true)}
-              style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '16px', color: '#FFF', cursor: 'pointer', border: '2px solid #00F2FF' }}
-            >
-              H
-            </div>
-            {isVipUser && (
-              <span style={{ position: 'absolute', top: '-4px', right: '-8px', background: 'linear-gradient(90deg, #FF9500, #FF5E00)', color: '#FFF', fontSize: '8px', fontWeight: '900', padding: '2px 5px', borderRadius: '8px', border: '1px solid #FFF' }}>
-                PRO VIP
-              </span>
-            )}
-          </div>
-
-          {!isVipUser && (
-            <button 
-              onClick={() => setShowPaymentModal(true)}
-              style={{ background: '#222431', border: '1px solid #FF9500', color: '#FF9500', fontSize: '10px', fontWeight: 'bold', padding: '3px 8px', borderRadius: '10px', cursor: 'pointer' }}
-            >
-              👑 Get VIP
-            </button>
-          )}
-        </div>
-
-        <div style={{ fontSize: '15px', fontWeight: '800', letterSpacing: '0.5px', color: '#FFF' }}>
-          HYPEREDITS <span style={{ color: '#00F2FF' }}>PRO</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button 
-            onClick={() => setShowHistoryModal(true)}
-            style={{ background: '#222431', border: '1px solid #333648', color: '#00F2FF', padding: '6px 12px', borderRadius: '8px', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            📜 History
-          </button>
-          <button onClick={() => setIsDrawerOpen(true)} style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '22px', cursor: 'pointer' }}>
-            ☰
-          </button>
-        </div>
-      </div>
-
-      {/* SIDE SLIDE-IN DRAWER */}
-      {isDrawerOpen && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10000, display: 'flex' }}>
-          <div onClick={() => setIsDrawerOpen(false)} style={{ position: 'absolute', width: '100%', height: '100%', background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(5px)' }} />
-          <div style={{ position: 'relative', width: '290px', background: '#14151C', height: '100%', borderRight: '1px solid #222431', padding: '20px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', zIndex: 10001 }}>
-            <div>
-              <div style={{ paddingBottom: '16px', borderBottom: '1px solid #222431', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '18px', color: '#FFF' }}>H</div>
-                  <div>
-                    {isEditingName ? (
-                      <input 
-                        type="text" 
-                        value={userName} 
-                        onChange={(e) => setUserName(e.target.value)}
-                        onBlur={() => setIsEditingName(false)}
-                        style={{ background: '#0D0E12', border: '1px solid #00F2FF', color: '#FFF', fontSize: '13px', padding: '2px 6px', borderRadius: '4px', width: '120px' }}
-                        autoFocus
-                      />
-                    ) : (
-                      <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#FFF', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span>{userName}</span>
-                        <span onClick={() => setIsEditingName(true)} style={{ fontSize: '11px', cursor: 'pointer', color: '#00F2FF' }}>✏️</span>
-                      </div>
-                    )}
-                    <div style={{ fontSize: '10px', color: isVipUser ? '#FF9500' : '#AAA', marginTop: '2px' }}>
-                      {isVipUser ? '⚡ PRO VIP Active' : 'FREE USER'}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {!isVipUser && (
-                  <div onClick={() => { setIsDrawerOpen(false); setShowPaymentModal(true); }} style={{ padding: '12px', background: 'linear-gradient(135deg, #2A1F0D, #1A1205)', border: '1px solid #FF950055', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#FF9500', fontWeight: 'bold' }}>
-                    👑 Upgrade to VIP
-                  </div>
-                )}
-                <div onClick={() => { setIsDrawerOpen(false); setShowSettingsModal(true); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#FFF', fontWeight: '600', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span>⚙️ Settings</span>
-                  <span style={{ color: '#666' }}>›</span>
-                </div>
-                <div onClick={() => { setIsDrawerOpen(false); setShowRecycleBinModal(true); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#DDD', display: 'flex', justifyContent: 'space-between' }}>
-                  <span>🗑️ Recycle Bin (30-Day)</span>
-                  <span style={{ fontSize: '10px', color: '#FF9500' }}>{recycleBin.length}</span>
-                </div>
-                <div onClick={() => { setIsDrawerOpen(false); setShowHistoryModal(true); }} style={{ padding: '12px', background: '#1A1C24', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#DDD' }}>
-                  📜 Payment & Token History
-                </div>
-                <div onClick={() => { if(confirm("Log out account?")) { setIsAppMode(false); setIsDrawerOpen(false); } }} style={{ padding: '12px', background: 'rgba(255,59,48,0.15)', border: '1px solid rgba(255,59,48,0.4)', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', color: '#FF4D4D', fontWeight: 'bold', marginTop: '10px', textAlign: 'center' }}>
-                  🚪 Sign Out
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ borderTop: '1px solid #222431', paddingTop: '14px', textAlign: 'center', marginBottom: '12px' }}>
-                <span onClick={() => { setIsDrawerOpen(false); setShowPolicyBrowser(true); }} style={{ color: '#007AFF', cursor: 'pointer', fontSize: '11px', textDecoration: 'underline' }}>Privacy Policy & Terms</span>
-              </div>
-              <button onClick={() => setIsDrawerOpen(false)} style={{ width: '100%', padding: '10px', background: '#222431', border: 'none', color: '#FFF', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}>Close Menu ✕</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* DASHBOARD MAIN */}
-      <div style={{ maxWidth: '480px', margin: '0 auto', padding: '16px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+      {currentScreen === 'editor' ? (
+        /* ================= CAPCUT STYLE CLEAN EDITOR TIMELINE SCREEN ================= */
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', justifyContent: 'space-between', padding: '12px' }}>
           
-          <div onClick={handleNewProjectClick} style={{ background: 'linear-gradient(135deg, #1A2639, #111827)', border: '1px solid #00F2FF55', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer' }}>
-            <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#00F2FF', color: '#000', fontSize: '26px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto' }}>+</div>
-            <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#FFF' }}>New video</div>
-          </div>
-
-          <div onClick={handleNewProjectClick} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer', position: 'relative' }}>
-            <span style={{ position: 'absolute', top: '8px', right: '8px', background: '#00F2FF', color: '#000', fontSize: '8px', fontWeight: 'bold', padding: '2px 5px', borderRadius: '6px' }}>Nano Banana 2</span>
-            <div style={{ fontSize: '28px', marginBottom: '6px' }}>🖼️</div>
-            <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#DDD' }}>Edit photo</div>
-          </div>
-        </div>
-
-        {/* 7 AI TOOLS */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
-          {[
-            { name: 'AutoCut', icon: '🎬' },
-            { name: 'Retouch', icon: '✨' },
-            { name: 'Auto captions', icon: '📝' },
-            { name: 'Desktop editor', icon: '💻' },
-            { name: 'Remove BG', icon: '👤' },
-            { name: 'Auto enhance', icon: '🪄' },
-            { name: 'Camera', icon: '📷' },
-            { name: 'All tools', icon: '🎛️' }
-          ].map((tool, idx) => (
-            <div key={idx} onClick={handleNewProjectClick} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '12px', padding: '12px 6px', textAlign: 'center', cursor: 'pointer' }}>
-              <div style={{ fontSize: '22px', marginBottom: '4px' }}>{tool.icon}</div>
-              <div style={{ fontSize: '11px', color: '#AAA', fontWeight: '500' }}>{tool.name}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* PROJECTS SECTION WITH AUTO-SAVE & 3-DOTS */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Projects ({savedProjects.length})</h3>
-          <span style={{ fontSize: '11px', color: '#00F2FF', background: '#14151C', padding: '4px 8px', borderRadius: '6px', border: '1px solid #222431' }}>⚡ Auto-Saved</span>
-        </div>
-
-        {savedProjects.length === 0 ? (
-          <div style={{ background: '#14151C', border: '1px dashed #222431', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📁</div>
-            <div style={{ fontSize: '14px', fontWeight: '600', color: '#888' }}>No project files found</div>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {savedProjects.map((item) => (
-              <div key={item.id} style={{ position: 'relative', background: '#14151C', borderRadius: '12px', border: '1px solid #222431', padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveTab('editor')}>
-                  <div style={{ width: '56px', height: '56px', background: '#222431', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🎥</div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#FFF' }}>{item.title}</div>
-                    <div style={{ fontSize: '11px', color: '#888', marginTop: '3px' }}>📅 {item.date}</div>
-                    <div style={{ fontSize: '10px', color: '#00F2FF', marginTop: '2px' }}>✂️ {item.size} | ⏱️ {item.duration}</div>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={(e) => { e.stopPropagation(); setActiveProjectMenu(activeProjectMenu === item.id ? null : item.id); }}
-                  style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#AAA', fontSize: '18px', cursor: 'pointer', padding: '4px' }}
-                >
-                  ⋮
-                </button>
-
-                {activeProjectMenu === item.id && (
-                  <div style={{ position: 'absolute', top: '38px', right: '12px', background: '#1A1C24', border: '1px solid #333648', borderRadius: '10px', padding: '6px', zIndex: 99, boxShadow: '0 4px 15px rgba(0,0,0,0.8)', minWidth: '160px' }}>
-                    <div onClick={() => convertToTemplate(item)} style={{ padding: '8px 10px', fontSize: '12px', color: '#00F2FF', cursor: 'pointer', borderRadius: '6px' }}>🎬 Convert to Template</div>
-                    <div onClick={() => moveToRecycleBin(item.id)} style={{ padding: '8px 10px', fontSize: '12px', color: '#FF4D4D', cursor: 'pointer', borderRadius: '6px' }}>🗑️ Move to Recycle Bin</div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* FLOATING DRAGGABLE AI ASSISTANT BUBBLE (Termux Style Voice + Text Command) */}
-      <div style={{ position: 'fixed', bottom: '30px', right: '20px', zIndex: 9998 }}>
-        {!showAiAgentModal ? (
-          <div 
-            onClick={() => setShowAiAgentModal(true)}
-            style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,242,255,0.6)', border: '2px solid #FFF', animation: 'pulse 2s infinite' }}
-            title="AI Command Agent"
-          >
-            🤖
-          </div>
-        ) : (
-          <div style={{ width: '300px', background: '#14151C', border: '2px solid #7000FF', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.9)', animation: 'fadeIn 0.2s' }}>
-            <div style={{ background: '#1A1C24', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
-              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#00F2FF' }}>🤖 Hyper AI Assistant</span>
-              <button onClick={() => setShowAiAgentModal(false)} style={{ background: 'none', border: 'none', color: '#FF4D4D', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>✕</button>
-            </div>
-            
-            <div style={{ height: '160px', overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
-              {aiChatLogs.map((log, lIdx) => (
-                <div key={lIdx} style={{ alignSelf: log.sender === 'user' ? 'flex-end' : 'flex-start', background: log.sender === 'user' ? '#7000FF' : '#1E202B', padding: '6px 10px', borderRadius: '8px', maxWidth: '80%', color: '#FFF' }}>
-                  {log.text}
-                </div>
-              ))}
-            </div>
-
-            <div style={{ padding: '10px', background: '#14151C', borderTop: '1px solid #222431', display: 'flex', gap: '6px', alignItems: 'center' }}>
-              <input 
-                type="text" 
-                placeholder="Type command..." 
-                value={aiCommandInput}
-                onChange={(e) => setAiCommandInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') handleAiSendCommand(); }}
-                style={{ flex: 1, background: '#0D0E12', border: '1px solid #333', color: '#FFF', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', outline: 'none' }}
-              />
-              <button onClick={handleVoiceListening} style={{ background: isListening ? '#FF3B30' : '#222', border: 'none', color: '#FFF', padding: '6px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }} title="Voice Command">
-                {isListening ? '🔴' : '🎙️'}
-              </button>
-              <button onClick={handleAiSendCommand} style={{ background: '#00F2FF', border: 'none', color: '#000', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>
-                Send
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* SETTINGS MODAL */}
-      {showSettingsModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10005, overflowY: 'auto', padding: '16px 20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '20px' }}>
-            <button onClick={() => setShowSettingsModal(false)} style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '20px', cursor: 'pointer' }}>‹</button>
-            <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Settings</span>
-            <div style={{ width: '20px' }}></div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#888', marginBottom: '12px' }}>Preferences</div>
-            <div style={{ background: '#14151C', borderRadius: '12px', border: '1px solid #222431' }}>
-              <div onClick={() => setShowLanguageModal(true)} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>App language</span>
-                <span style={{ fontSize: '13px', color: '#00F2FF' }}>{selectedLanguage} ›</span>
-              </div>
-            </div>
-          </div>
-
-          <button onClick={() => { setIsAppMode(false); setShowSettingsModal(false); }} style={{ width: '100%', padding: '14px', background: '#1A1C24', border: '1px solid #222431', color: '#FF4D4D', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>Sign out</button>
-        </div>
-      )}
-
-      {/* LANGUAGE MODAL */}
-      {showLanguageModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10006, padding: '20px', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '20px' }}>
-            <h3 style={{ margin: 0, color: '#00F2FF', fontSize: '16px' }}>Select App Language</h3>
-            <button onClick={() => setShowLanguageModal(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {languagesList.map((lang) => (
-              <div key={lang} onClick={() => { setSelectedLanguage(lang); setShowLanguageModal(false); }} style={{ padding: '14px', background: selectedLanguage === lang ? '#1A2639' : '#14151C', border: selectedLanguage === lang ? '1px solid #00F2FF' : '1px solid #222431', borderRadius: '10px', color: '#FFF', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ fontSize: '14px' }}>{lang}</span>
-                {selectedLanguage === lang && <span style={{ color: '#00F2FF' }}>✓</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* RECYCLE BIN */}
-      {showRecycleBinModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10002, padding: '20px', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, color: '#FF9500', fontSize: '16px' }}>🗑️ Recycle Bin (30-Day Trash)</h3>
-            <button onClick={() => setShowRecycleBinModal(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
-          </div>
-          {recycleBin.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#555', fontSize: '13px' }}>Your Trash is empty.</div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
-              {recycleBin.map((item) => (
-                <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#14151C', padding: '12px', borderRadius: '10px', border: '1px solid #222431' }}>
-                  <div>
-                    <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FFF' }}>{item.title}</div>
-                    <div style={{ fontSize: '10px', color: '#FF9500', marginTop: '2px' }}>Auto-deletes in 30 days</div>
-                  </div>
-                  <button onClick={() => restoreProject(item.id)} style={{ background: '#00F2FF', border: 'none', color: '#000', padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>Restore ↶</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {showPolicyModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10003, padding: '20px', overflowY: 'auto' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
-            <h3 style={{ margin: 0, color: '#00F2FF', fontSize: '16px' }}>गोपनीयता नीति एवं नियम व शर्तें</h3>
-            <button onClick={() => setShowPolicyBrowser(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
-          </div>
-          <div style={{ fontSize: '12px', color: '#AAA', lineHeight: '1.6' }}>
-            <p>1. उपयोगकर्ता का डेटा लोकल डिवाइस में ही सुरक्षित रहता है।</p>
-            <p>2. सहायता: <strong>hs8822365@gmail.com</strong></p>
-          </div>
-        </div>
-      )}
-
-      {showPaymentModal && <PowerPaymentEngine onClose={() => setShowPaymentModal(false)} />}
-      {showHistoryModal && <UserProfileHistory onClose={() => setShowHistoryModal(false)} />}
-      
-      {/* EDITOR OVERLAY */}
-      {activeTab === 'editor' && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 9999, overflowY: 'auto' }}>
-          <div style={{ padding: '12px 16px', background: '#14151C', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
+          {/* Top Navigation Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button 
               onClick={() => {
                 const now = new Date();
                 const liveStamp = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                const autoSavedProj = {
-                  id: Date.now(),
-                  title: 'Project_' + (savedProjects.length + 1),
+                const newProj = {
+                  name: 'Project_' + (savedProjects.length + 1),
                   date: liveStamp,
-                  size: '34 MB',
-                  duration: '00:18'
+                  size: '35MB',
+                  len: '00:15',
+                  tag: '🔥'
                 };
-                const updated = [autoSavedProj, ...savedProjects];
-                setSavedProjects(updated);
-                localStorage.setItem('hyper_edits_projects', JSON.stringify(updated));
-                setActiveTab('projects');
-              }} 
-              style={{ background: 'none', border: 'none', color: '#00F2FF', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+                const updatedList = [newProj, ...savedProjects];
+                setSavedProjects(updatedList);
+                localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedList));
+                setCurrentScreen('dashboard');
+              }}
+              style={{ backgroundColor: '#7B2CBF', color: '#FFF', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer' }}
             >
-              ← Back to Dashboard (Auto-Save)
+              ✕ Back
             </button>
-            <span style={{ fontSize: '14px', fontWeight: 'bold' }}>CapCut Workspace</span>
-            <div></div>
+            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#00F2FF' }}>HyperEdits Pro Timeline</div>
+            <div style={{ fontSize: '12px', color: '#AAA' }}>1080p 60fps</div>
           </div>
-          <EditorFeatures />
+
+          {/* Video Preview Canvas */}
+          <div style={{ flex: 1, backgroundColor: '#000', borderRadius: '10px', margin: '10px 0', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', border: '1px solid #222' }}>
+            <span style={{ fontSize: '14px', color: '#888' }}>▶ Preview Screen</span>
+            <span style={{ fontSize: '10px', color: '#555', marginTop: '4px' }}>[ GPU Accelerated Canvas ]</span>
+          </div>
+
+          {/* Bottom CapCut Style Tools Toolbar (Scrollable & Clean) */}
+          <div style={{ backgroundColor: '#14141A', padding: '10px', borderRadius: '12px', border: '1px solid #222' }}>
+            <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '5px', scrollbarWidth: 'none' }}>
+              {[
+                { id: 'split', label: 'Split', icon: '✂️' },
+                { id: 'speed', label: 'Speed', icon: '⚡' },
+                { id: 'animation', label: 'Animation', icon: '✨' },
+                { id: 'audio', label: 'Audio', icon: '🎵' },
+                { id: 'text', label: 'Text', icon: '💬' },
+                { id: 'effects', label: 'Effects', icon: '🌟' },
+                { id: 'filters', label: 'Filters', icon: '🎨' },
+                { id: 'adjust', label: 'Adjust', icon: '🎛️' },
+                { id: 'mask', label: 'Mask', icon: '⭕' }
+              ].map((tool) => (
+                <div 
+                  key={tool.id}
+                  onClick={() => alert(tool.label + ' tool activated!')}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: '55px', cursor: 'pointer' }}
+                >
+                  <span style={{ fontSize: '18px', marginBottom: '3px' }}>{tool.icon}</span>
+                  <span style={{ fontSize: '10px', color: '#CCC' }}>{tool.label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      ) : (
+        /* ================= ORIGINAL UNTOUCHED PURPLE-BLACK DASHBOARD ================= */
+        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px', paddingBottom: '50px' }}>
+          
+          {/* Header Icons */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <div style={{ fontSize: '20px', cursor: 'pointer' }}>👤</div>
+            <div style={{ display: 'flex', gap: '18px', fontSize: '18px', cursor: 'pointer' }}>
+              <span>🔔</span>
+              <span>⚙️</span>
+            </div>
+          </div>
+
+          {/* Top Two Big Hero Action Cards */}
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '18px' }}>
+            <div 
+              onClick={() => setCurrentScreen('editor')}
+              style={{ flex: 1.4, background: 'linear-gradient(135deg, #7B2CBF 0%, #3C096C 100%)', borderRadius: '14px', padding: '22px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(123,44,191,0.4)' }}
+            >
+              <span style={{ fontSize: '20px', backgroundColor: '#FFF', color: '#3C096C', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>+</span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold' }}>New video</span>
+            </div>
+
+            <div 
+              onClick={() => setPhotoEditActive(!photoEditActive)}
+              style={{ flex: 1, background: photoEditActive ? 'linear-gradient(135deg, #E0AAFF 0%, #7B2CBF 100%)' : '#1C1C24', border: photoEditActive ? 'none' : '1px solid #333', borderRadius: '14px', padding: '20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', position: 'relative' }}
+            >
+              <span style={{ fontSize: '22px' }}>🖼️</span>
+              <span style={{ fontSize: '13px', fontWeight: 'bold', color: photoEditActive ? '#000' : '#FFF' }}>Edit photo</span>
+              <span style={{ fontSize: '8px', backgroundColor: '#FF9500', color: '#000', padding: '1px 4px', borderRadius: '4px', position: 'absolute', top: '5px', right: '5px' }}>Pro</span>
+            </div>
+          </div>
+
+          {/* Quick Access Tools 7+1 Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '22px', backgroundColor: '#14141A', padding: '12px', borderRadius: '12px', border: '1px solid #222' }}>
+            {[
+              { id: 'autocut', label: 'AutoCut', icon: '🎬' },
+              { id: 'retouch', label: 'Retouch', icon: '✨' },
+              { id: 'captions', label: 'Auto captions', icon: '🔤' },
+              { id: 'desktop', label: 'Desktop editor', icon: '💻' },
+              { id: 'remove_bg', label: 'Remove BG', icon: '👤' },
+              { id: 'enhance', label: 'Auto enhance', icon: '🪄' },
+              { id: 'camera', label: 'Camera', icon: '📷' },
+              { id: 'all_tools', label: '● All tools', icon: '🎛️', color: '#FF3B30' }
+            ].map((tool) => (
+              <div 
+                key={tool.id}
+                onClick={() => {
+                  if (tool.id === 'all_tools') {
+                    alert('🎛️ Complete Pro Feature Suite Open');
+                  } else {
+                    setSelectedPhotoTool(tool.label);
+                    setCurrentScreen('editor');
+                  }
+                }}
+                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '10px 4px', backgroundColor: '#1C1C24', borderRadius: '8px', cursor: 'pointer' }}
+              >
+                <span style={{ fontSize: '16px' }}>{tool.icon}</span>
+                <span style={{ fontSize: '10px', color: tool.color || '#AAA', textAlign: 'center', whiteSpace: 'nowrap' }}>{tool.label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Projects History Section */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <span style={{ fontSize: '16px', fontWeight: 'bold' }}>Projects</span>
+            <span style={{ fontSize: '12px', color: '#7B2CBF', fontWeight: 'bold', cursor: 'pointer' }}>☁️ Space</span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {savedProjects.map((proj, pIdx) => (
+              <div 
+                key={pIdx}
+                onClick={() => setCurrentScreen('editor')}
+                style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#1C1C24', padding: '10px', borderRadius: '10px', cursor: 'pointer', border: '1px solid #25252E' }}
+              >
+                <div style={{ width: '45px', height: '45px', backgroundColor: '#0A0A0C', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', border: '1px solid #333' }}>{proj.tag}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FFF', marginBottom: '2px' }}>{proj.name}</div>
+                  <div style={{ fontSize: '10px', color: '#8E8E93' }}>{proj.date}</div>
+                  <div style={{ fontSize: '9px', color: '#7B2CBF', marginTop: '2px', fontWeight: 'bold' }}>✂️ {proj.size} | ⏱️ {proj.len}</div>
+                </div>
+                <div style={{ color: '#8E8E93', fontSize: '14px' }}>⋮</div>
+              </div>
+            ))}
+          </div>
+
         </div>
       )}
 
