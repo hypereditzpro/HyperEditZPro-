@@ -19,14 +19,17 @@ export default function App() {
   const [userName, setUserName] = useState<string>('Hitesh Sharma');
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [showPolicyModal, setShowPolicyBrowser] = useState<boolean>(false);
+  const [activeProjectMenu, setActiveProjectMenu] = useState<number | null>(null);
   
   // VIP Status
   const [isVipUser, setIsVipUser] = useState<boolean>(false);
 
-  // Dynamic Saved Projects & Recycle Bin
+  // Dynamic Saved Projects with Realtime Persistent Auto-Save
   const [savedProjects, setSavedProjects] = useState<any[]>(() => {
     const localData = localStorage.getItem('hyper_edits_projects');
-    return localData ? JSON.parse(localData) : [];
+    return localData ? JSON.parse(localData) : [
+      { id: 101, title: 'FF_Headshot_Montage_01', date: '22/07/2026 14:15', size: '48 MB', duration: '00:15' }
+    ];
   });
   
   const [recycleBin, setRecycleBin] = useState<any[]>(() => {
@@ -35,15 +38,15 @@ export default function App() {
   });
   const [showRecycleBinModal, setShowRecycleBinModal] = useState<boolean>(false);
 
-  // Languages list including Rajasthani
+  // Custom User Created Templates Array
+  const [userTemplates, setUserTemplates] = useState<any[]>(() => {
+    const localTeps = localStorage.getItem('hyper_edits_user_templates');
+    return localTeps ? JSON.parse(localTeps) : [];
+  });
+
   const languagesList = [
-    'English',
-    'हिन्दी (Hindi)',
-    'राजस्थानी (Rajasthani)',
-    'मराठी (Marathi)',
-    'ગુજરાતી (Gujarati)',
-    'पंजाबी (Punjabi)',
-    'বাংলা (Bengali)'
+    'English', 'हिन्दी (Hindi)', 'राजस्थानी (Rajasthani)', 
+    'मराठी (Marathi)', 'ગુજરાતી (Gujarati)', 'पंजाबी (Punjabi)', 'বাংলা (Bengali)'
   ];
 
   useEffect(() => {
@@ -57,6 +60,39 @@ export default function App() {
     }
   }, []);
 
+  // Delete project (Send to Recycle Bin)
+  const moveToRecycleBin = (id: number) => {
+    const projToDelete = savedProjects.find(p => p.id === id);
+    if (projToDelete) {
+      const updatedProjects = savedProjects.filter(p => p.id !== id);
+      const updatedBin = [projToDelete, ...recycleBin];
+      
+      setSavedProjects(updatedProjects);
+      setRecycleBin(updatedBin);
+      
+      localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedProjects));
+      localStorage.setItem('hyper_edits_recycle_bin', JSON.stringify(updatedBin));
+      setActiveProjectMenu(null);
+      alert('🗑️ Project moved to Recycle Bin! (Saved for 30 Days)');
+    }
+  };
+
+  // Convert Project to Custom Template
+  const convertToTemplate = (proj: any) => {
+    const newTemplate = {
+      ...proj,
+      templateId: Date.now(),
+      hasCropSupport: true,
+      mediaType: 'Photos & Videos Allowed'
+    };
+    const updatedTemplates = [newTemplate, ...userTemplates];
+    setUserTemplates(updatedTemplates);
+    localStorage.setItem('hyper_edits_user_templates', JSON.stringify(updatedTemplates));
+    setActiveProjectMenu(null);
+    alert(`🎬 "${proj.title}" converted into a reusable Template with Photo/Video Swap & Crop support!`);
+  };
+
+  // Restore Project from Trash
   const restoreProject = (id: number) => {
     const itemToRestore = recycleBin.find(item => item.id === id);
     if (itemToRestore) {
@@ -220,44 +256,74 @@ export default function App() {
           ))}
         </div>
 
-        {/* PROJECTS */}
+        {/* PROJECTS SECTION WITH INFINITY AUTO-SAVE & 3-DOTS OPTIONS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Projects</h3>
-          <span style={{ fontSize: '12px', color: '#666' }}>Recent</span>
+          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Projects ({savedProjects.length})</h3>
+          <span style={{ fontSize: '11px', color: '#00F2FF', background: '#14151C', padding: '4px 8px', borderRadius: '6px', border: '1px solid #222431' }}>⚡ Auto-Saved</span>
         </div>
 
         {savedProjects.length === 0 ? (
           <div style={{ background: '#14151C', border: '1px dashed #222431', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📁</div>
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#888' }}>No project files found</div>
+            <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>Tap 'New video' to create auto-saved project</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {savedProjects.map((item, idx) => (
-              <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#14151C', padding: '10px', borderRadius: '12px', border: '1px solid #222431' }}>
-                <div style={{ width: '56px', height: '56px', background: '#222431', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🎥</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#FFF' }}>{item.title}</div>
-                  <div style={{ fontSize: '11px', color: '#666', marginTop: '2px' }}>{item.date} | {item.size}</div>
+            {savedProjects.map((item) => (
+              <div key={item.id} style={{ position: 'relative', background: '#14151C', borderRadius: '12px', border: '1px solid #222431', padding: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }} onClick={() => setActiveTab('editor')}>
+                  <div style={{ width: '56px', height: '56px', background: '#222431', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>🎥</div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#FFF' }}>{item.title}</div>
+                    <div style={{ fontSize: '11px', color: '#888', marginTop: '3px' }}>📅 {item.date}</div>
+                    <div style={{ fontSize: '10px', color: '#00F2FF', marginTop: '2px' }}>✂️ {item.size} | ⏱️ {item.duration}</div>
+                  </div>
                 </div>
+
+                {/* Three Dot Trigger */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveProjectMenu(activeProjectMenu === item.id ? null : item.id);
+                  }}
+                  style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#AAA', fontSize: '18px', cursor: 'pointer', padding: '4px' }}
+                >
+                  ⋮
+                </button>
+
+                {/* 3-Dot Popup Sub-Menu */}
+                {activeProjectMenu === item.id && (
+                  <div style={{ position: 'absolute', top: '38px', right: '12px', background: '#1A1C24', border: '1px solid #333648', borderRadius: '10px', padding: '6px', zIndex: 99, boxShadow: '0 4px 15px rgba(0,0,0,0.8)', minWidth: '160px' }}>
+                    <div 
+                      onClick={() => convertToTemplate(item)}
+                      style={{ padding: '8px 10px', fontSize: '12px', color: '#00F2FF', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      🎬 Convert to Template
+                    </div>
+                    <div 
+                      onClick={() => moveToRecycleBin(item.id)}
+                      style={{ padding: '8px 10px', fontSize: '12px', color: '#FF4D4D', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    >
+                      🗑️ Move to Recycle Bin
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* FULLSETTINGS MODAL (CapCut Style matching Screenshot) */}
+      {/* SETTINGS MODAL */}
       {showSettingsModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10005, overflowY: 'auto', padding: '16px 20px' }}>
-          
-          {/* Header */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '20px' }}>
             <button onClick={() => setShowSettingsModal(false)} style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '20px', cursor: 'pointer' }}>‹</button>
             <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Settings</span>
             <div style={{ width: '20px' }}></div>
           </div>
 
-          {/* Account Section */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#888', marginBottom: '12px' }}>Account</div>
             <div style={{ background: '#14151C', borderRadius: '12px', border: '1px solid #222431' }}>
@@ -265,18 +331,13 @@ export default function App() {
                 <span style={{ fontSize: '14px', color: '#FFF' }}>Edit profile</span>
                 <span style={{ color: '#666' }}>›</span>
               </div>
-              <div onClick={() => alert("Manage Account: Account details active")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
+              <div onClick={() => alert("Manage Account Active")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
                 <span style={{ fontSize: '14px', color: '#FFF' }}>Manage Account</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
-              <div onClick={() => alert("Blocked Users List: Empty")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Blocked Users</span>
                 <span style={{ color: '#666' }}>›</span>
               </div>
             </div>
           </div>
 
-          {/* Preferences Section */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#888', marginBottom: '12px' }}>Preferences</div>
             <div style={{ background: '#14151C', borderRadius: '12px', border: '1px solid #222431' }}>
@@ -284,7 +345,7 @@ export default function App() {
                 <span style={{ fontSize: '14px', color: '#FFF' }}>App language</span>
                 <span style={{ fontSize: '13px', color: '#00F2FF' }}>{selectedLanguage} ›</span>
               </div>
-              <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
+              <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <span style={{ fontSize: '14px', color: '#FFF' }}>Add default ending</span>
                 <input 
                   type="checkbox" 
@@ -293,37 +354,9 @@ export default function App() {
                   style={{ width: '18px', height: '18px', accentColor: '#00F2FF', cursor: 'pointer' }}
                 />
               </div>
-              <div onClick={() => alert("Auto upload active")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Auto upload</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
             </div>
           </div>
 
-          {/* Feedback & about Section */}
-          <div style={{ marginBottom: '30px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#888', marginBottom: '12px' }}>Feedback & about</div>
-            <div style={{ background: '#14151C', borderRadius: '12px', border: '1px solid #222431' }}>
-              <div onClick={() => alert("Feedback Support Email: hs8822365@gmail.com")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Feedback</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
-              <div onClick={() => setShowPolicyBrowser(true)} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Terms and Policies</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
-              <div onClick={() => alert("Cache Cleared!")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Clear cache</span>
-                <span style={{ fontSize: '12px', color: '#888' }}>0.00M</span>
-              </div>
-              <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Version</span>
-                <span style={{ fontSize: '12px', color: '#888' }}>v2.4.0</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Sign Out Button */}
           <button 
             onClick={() => { if(confirm("Sign out from HyperEdits Pro?")) { setIsAppMode(false); setShowSettingsModal(false); } }} 
             style={{ width: '100%', padding: '14px', background: '#1A1C24', border: '1px solid #222431', color: '#FF4D4D', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}
@@ -333,14 +366,13 @@ export default function App() {
         </div>
       )}
 
-      {/* LANGUAGE SELECTOR MODAL (Includes Rajasthani) */}
+      {/* LANGUAGE SELECTOR MODAL */}
       {showLanguageModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10006, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '20px' }}>
             <h3 style={{ margin: 0, color: '#00F2FF', fontSize: '16px' }}>Select App Language</h3>
             <button onClick={() => setShowLanguageModal(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
           </div>
-          
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {languagesList.map((lang) => (
               <div 
@@ -348,9 +380,8 @@ export default function App() {
                 onClick={() => {
                   setSelectedLanguage(lang);
                   setShowLanguageModal(false);
-                  alert(`App language set to: ${lang}`);
                 }}
-                style={{ padding: '14px', background: selectedLanguage === lang ? '#1A2639' : '#14151C', border: selectedLanguage === lang ? '1px solid #00F2FF' : '1px solid #222431', borderRadius: '10px', color: '#FFF', cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+                style={{ padding: '14px', background: selectedLanguage === lang ? '#1A2639' : '#14151C', border: selectedLanguage === lang ? '1px solid #00F2FF' : '1px solid #222431', borderRadius: '10px', color: '#FFF', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
               >
                 <span style={{ fontSize: '14px', fontWeight: selectedLanguage === lang ? 'bold' : 'normal' }}>{lang}</span>
                 {selectedLanguage === lang && <span style={{ color: '#00F2FF' }}>✓</span>}
@@ -360,7 +391,7 @@ export default function App() {
         </div>
       )}
 
-      {/* MODALS */}
+      {/* RECYCLE BIN MODAL */}
       {showRecycleBinModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10002, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -385,6 +416,7 @@ export default function App() {
         </div>
       )}
 
+      {/* POLICY BROWSER MODAL */}
       {showPolicyModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10003, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -392,8 +424,8 @@ export default function App() {
             <button onClick={() => setShowPolicyBrowser(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
           </div>
           <div style={{ fontSize: '12px', color: '#AAA', lineHeight: '1.6' }}>
-            <p>1. उपयोगकर्ता का डेटा लोकल डिवाइस में ही सुरक्षित रहता है।</p>
-            <p>2. संपर्क: <strong>hs8822365@gmail.com</strong></p>
+            <p>1. उपयोगकर्ता का डेटा उनके स्वयं के डिवाइस के लोकल स्टोरेज में ही सुरक्षित रहता है।</p>
+            <p>2. सहायता एवं संपर्क: <strong>hs8822365@gmail.com</strong></p>
           </div>
         </div>
       )}
@@ -401,11 +433,33 @@ export default function App() {
       {showPaymentModal && <PowerPaymentEngine onClose={() => setShowPaymentModal(false)} />}
       {showHistoryModal && <UserProfileHistory onClose={() => setShowHistoryModal(false)} />}
       
-      {/* EDITOR OVERLAY */}
+      {/* EDITOR OVERLAY WITH AUTOMATIC PROJECT CREATION & AUTO-SAVE */}
       {activeTab === 'editor' && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 9999, overflowY: 'auto' }}>
           <div style={{ padding: '12px 16px', background: '#14151C', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
-            <button onClick={() => setActiveTab('projects')} style={{ background: 'none', border: 'none', color: '#00F2FF', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>← Back to Dashboard</button>
+            <button 
+              onClick={() => {
+                // Live Auto-Save Timestamp Generation on Back Action
+                const now = new Date();
+                const liveStamp = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+                
+                const autoSavedProj = {
+                  id: Date.now(),
+                  title: 'Project_' + (savedProjects.length + 1),
+                  date: liveStamp,
+                  size: '34 MB',
+                  duration: '00:18'
+                };
+                const updated = [autoSavedProj, ...savedProjects];
+                setSavedProjects(updated);
+                localStorage.setItem('hyper_edits_projects', JSON.stringify(updated));
+                
+                setActiveTab('projects');
+              }} 
+              style={{ background: 'none', border: 'none', color: '#00F2FF', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
+            >
+              ← Back to Projects (Auto-Save)
+            </button>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>CapCut Workspace</span>
             <div></div>
           </div>
