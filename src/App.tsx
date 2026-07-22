@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import EditorFeatures from './EditorFeatures';
 import Auth from './Auth';
 import UserProfileHistory from './UserProfileHistory';
@@ -15,16 +15,18 @@ export default function App() {
   const [addDefaultEnding, setAddDefaultEnding] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'editor' | 'templates'>('projects');
   
-  // Custom States
+  // Custom Media Input Ref for Gallery Selection
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
+
+  // Profile & App States
   const [userName, setUserName] = useState<string>('Hitesh Sharma');
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [showPolicyModal, setShowPolicyBrowser] = useState<boolean>(false);
   const [activeProjectMenu, setActiveProjectMenu] = useState<number | null>(null);
-  
-  // VIP Status
   const [isVipUser, setIsVipUser] = useState<boolean>(false);
 
-  // Dynamic Saved Projects with Realtime Persistent Auto-Save
+  // Dynamic Saved Projects
   const [savedProjects, setSavedProjects] = useState<any[]>(() => {
     const localData = localStorage.getItem('hyper_edits_projects');
     return localData ? JSON.parse(localData) : [
@@ -38,7 +40,6 @@ export default function App() {
   });
   const [showRecycleBinModal, setShowRecycleBinModal] = useState<boolean>(false);
 
-  // Custom User Created Templates Array
   const [userTemplates, setUserTemplates] = useState<any[]>(() => {
     const localTeps = localStorage.getItem('hyper_edits_user_templates');
     return localTeps ? JSON.parse(localTeps) : [];
@@ -60,16 +61,31 @@ export default function App() {
     }
   }, []);
 
-  // Delete project (Send to Recycle Bin)
+  // Trigger Phone Gallery File Picker
+  const handleNewProjectClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    } else {
+      setActiveTab('editor');
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const mediaUrl = URL.createObjectURL(file);
+      setSelectedMedia(mediaUrl);
+      setActiveTab('editor');
+    }
+  };
+
   const moveToRecycleBin = (id: number) => {
     const projToDelete = savedProjects.find(p => p.id === id);
     if (projToDelete) {
       const updatedProjects = savedProjects.filter(p => p.id !== id);
       const updatedBin = [projToDelete, ...recycleBin];
-      
       setSavedProjects(updatedProjects);
       setRecycleBin(updatedBin);
-      
       localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedProjects));
       localStorage.setItem('hyper_edits_recycle_bin', JSON.stringify(updatedBin));
       setActiveProjectMenu(null);
@@ -77,22 +93,15 @@ export default function App() {
     }
   };
 
-  // Convert Project to Custom Template
   const convertToTemplate = (proj: any) => {
-    const newTemplate = {
-      ...proj,
-      templateId: Date.now(),
-      hasCropSupport: true,
-      mediaType: 'Photos & Videos Allowed'
-    };
+    const newTemplate = { ...proj, templateId: Date.now(), hasCropSupport: true };
     const updatedTemplates = [newTemplate, ...userTemplates];
     setUserTemplates(updatedTemplates);
     localStorage.setItem('hyper_edits_user_templates', JSON.stringify(updatedTemplates));
     setActiveProjectMenu(null);
-    alert(`🎬 "${proj.title}" converted into a reusable Template with Photo/Video Swap & Crop support!`);
+    alert(`🎬 "${proj.title}" converted into Template with Photo/Video Swap & Crop support!`);
   };
 
-  // Restore Project from Trash
   const restoreProject = (id: number) => {
     const itemToRestore = recycleBin.find(item => item.id === id);
     if (itemToRestore) {
@@ -113,6 +122,15 @@ export default function App() {
   return (
     <div style={{ background: '#0D0E12', minHeight: '100vh', color: '#FFF', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingBottom: '40px', position: 'relative', overflowX: 'hidden' }}>
       
+      {/* Hidden File Input for Direct Gallery Upload */}
+      <input 
+        type="file" 
+        ref={fileInputRef} 
+        onChange={handleFileChange} 
+        accept="video/*,image/*" 
+        style={{ display: 'none' }} 
+      />
+
       {/* TOP HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#14151C', borderBottom: '1px solid #222431' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -225,12 +243,14 @@ export default function App() {
       {/* DASHBOARD MAIN */}
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-          <div onClick={() => setActiveTab('editor')} style={{ background: 'linear-gradient(135deg, #1A2639, #111827)', border: '1px solid #00F2FF55', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer' }}>
+          
+          {/* New Video Button - Directly Triggers Gallery File Picker */}
+          <div onClick={handleNewProjectClick} style={{ background: 'linear-gradient(135deg, #1A2639, #111827)', border: '1px solid #00F2FF55', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#00F2FF', color: '#000', fontSize: '26px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto' }}>+</div>
             <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#FFF' }}>New video</div>
           </div>
 
-          <div onClick={() => setActiveTab('editor')} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer', position: 'relative' }}>
+          <div onClick={handleNewProjectClick} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer', position: 'relative' }}>
             <span style={{ position: 'absolute', top: '8px', right: '8px', background: '#00F2FF', color: '#000', fontSize: '8px', fontWeight: 'bold', padding: '2px 5px', borderRadius: '6px' }}>Nano Banana 2</span>
             <div style={{ fontSize: '28px', marginBottom: '6px' }}>🖼️</div>
             <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#DDD' }}>Edit photo</div>
@@ -249,14 +269,14 @@ export default function App() {
             { name: 'Camera', icon: '📷' },
             { name: 'All tools', icon: '🎛️' }
           ].map((tool, idx) => (
-            <div key={idx} onClick={() => setActiveTab('editor')} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '12px', padding: '12px 6px', textAlign: 'center', cursor: 'pointer' }}>
+            <div key={idx} onClick={handleNewProjectClick} style={{ background: '#14151C', border: '1px solid #222431', borderRadius: '12px', padding: '12px 6px', textAlign: 'center', cursor: 'pointer' }}>
               <div style={{ fontSize: '22px', marginBottom: '4px' }}>{tool.icon}</div>
               <div style={{ fontSize: '11px', color: '#AAA', fontWeight: '500' }}>{tool.name}</div>
             </div>
           ))}
         </div>
 
-        {/* PROJECTS SECTION WITH INFINITY AUTO-SAVE & 3-DOTS OPTIONS */}
+        {/* PROJECTS SECTION WITH AUTO-SAVE & 3-DOTS OPTIONS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Projects ({savedProjects.length})</h3>
           <span style={{ fontSize: '11px', color: '#00F2FF', background: '#14151C', padding: '4px 8px', borderRadius: '6px', border: '1px solid #222431' }}>⚡ Auto-Saved</span>
@@ -266,7 +286,7 @@ export default function App() {
           <div style={{ background: '#14151C', border: '1px dashed #222431', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📁</div>
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#888' }}>No project files found</div>
-            <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>Tap 'New video' to create auto-saved project</div>
+            <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>Tap 'New video' to pick gallery photo/video</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -281,7 +301,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Three Dot Trigger */}
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -292,21 +311,10 @@ export default function App() {
                   ⋮
                 </button>
 
-                {/* 3-Dot Popup Sub-Menu */}
                 {activeProjectMenu === item.id && (
                   <div style={{ position: 'absolute', top: '38px', right: '12px', background: '#1A1C24', border: '1px solid #333648', borderRadius: '10px', padding: '6px', zIndex: 99, boxShadow: '0 4px 15px rgba(0,0,0,0.8)', minWidth: '160px' }}>
-                    <div 
-                      onClick={() => convertToTemplate(item)}
-                      style={{ padding: '8px 10px', fontSize: '12px', color: '#00F2FF', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      🎬 Convert to Template
-                    </div>
-                    <div 
-                      onClick={() => moveToRecycleBin(item.id)}
-                      style={{ padding: '8px 10px', fontSize: '12px', color: '#FF4D4D', cursor: 'pointer', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    >
-                      🗑️ Move to Recycle Bin
-                    </div>
+                    <div onClick={() => convertToTemplate(item)} style={{ padding: '8px 10px', fontSize: '12px', color: '#00F2FF', cursor: 'pointer', borderRadius: '6px' }}>🎬 Convert to Template</div>
+                    <div onClick={() => moveToRecycleBin(item.id)} style={{ padding: '8px 10px', fontSize: '12px', color: '#FF4D4D', cursor: 'pointer', borderRadius: '6px' }}>🗑️ Move to Recycle Bin</div>
                   </div>
                 )}
               </div>
@@ -331,10 +339,6 @@ export default function App() {
                 <span style={{ fontSize: '14px', color: '#FFF' }}>Edit profile</span>
                 <span style={{ color: '#666' }}>›</span>
               </div>
-              <div onClick={() => alert("Manage Account Active")} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Manage Account</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
             </div>
           </div>
 
@@ -345,28 +349,14 @@ export default function App() {
                 <span style={{ fontSize: '14px', color: '#FFF' }}>App language</span>
                 <span style={{ fontSize: '13px', color: '#00F2FF' }}>{selectedLanguage} ›</span>
               </div>
-              <div style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Add default ending</span>
-                <input 
-                  type="checkbox" 
-                  checked={addDefaultEnding} 
-                  onChange={(e) => setAddDefaultEnding(e.target.checked)}
-                  style={{ width: '18px', height: '18px', accentColor: '#00F2FF', cursor: 'pointer' }}
-                />
-              </div>
             </div>
           </div>
 
-          <button 
-            onClick={() => { if(confirm("Sign out from HyperEdits Pro?")) { setIsAppMode(false); setShowSettingsModal(false); } }} 
-            style={{ width: '100%', padding: '14px', background: '#1A1C24', border: '1px solid #222431', color: '#FF4D4D', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', textAlign: 'center' }}
-          >
-            Sign out
-          </button>
+          <button onClick={() => { setIsAppMode(false); setShowSettingsModal(false); }} style={{ width: '100%', padding: '14px', background: '#1A1C24', border: '1px solid #222431', color: '#FF4D4D', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>Sign out</button>
         </div>
       )}
 
-      {/* LANGUAGE SELECTOR MODAL */}
+      {/* LANGUAGE MODAL */}
       {showLanguageModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10006, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '20px' }}>
@@ -375,15 +365,8 @@ export default function App() {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {languagesList.map((lang) => (
-              <div 
-                key={lang}
-                onClick={() => {
-                  setSelectedLanguage(lang);
-                  setShowLanguageModal(false);
-                }}
-                style={{ padding: '14px', background: selectedLanguage === lang ? '#1A2639' : '#14151C', border: selectedLanguage === lang ? '1px solid #00F2FF' : '1px solid #222431', borderRadius: '10px', color: '#FFF', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}
-              >
-                <span style={{ fontSize: '14px', fontWeight: selectedLanguage === lang ? 'bold' : 'normal' }}>{lang}</span>
+              <div key={lang} onClick={() => { setSelectedLanguage(lang); setShowLanguageModal(false); }} style={{ padding: '14px', background: selectedLanguage === lang ? '#1A2639' : '#14151C', border: selectedLanguage === lang ? '1px solid #00F2FF' : '1px solid #222431', borderRadius: '10px', color: '#FFF', cursor: 'pointer', display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ fontSize: '14px' }}>{lang}</span>
                 {selectedLanguage === lang && <span style={{ color: '#00F2FF' }}>✓</span>}
               </div>
             ))}
@@ -416,7 +399,7 @@ export default function App() {
         </div>
       )}
 
-      {/* POLICY BROWSER MODAL */}
+      {/* POLICY MODAL */}
       {showPolicyModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10003, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -439,7 +422,6 @@ export default function App() {
           <div style={{ padding: '12px 16px', background: '#14151C', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
             <button 
               onClick={() => {
-                // Live Auto-Save Timestamp Generation on Back Action
                 const now = new Date();
                 const liveStamp = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
                 
