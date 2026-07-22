@@ -15,9 +15,8 @@ export default function App() {
   const [addDefaultEnding, setAddDefaultEnding] = useState<boolean>(true);
   const [activeTab, setActiveTab] = useState<'projects' | 'editor' | 'templates'>('projects');
   
-  // Custom Media Input Ref for Gallery Selection
+  // Gallery Picker Ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [selectedMedia, setSelectedMedia] = useState<string | null>(null);
 
   // Profile & App States
   const [userName, setUserName] = useState<string>('Hitesh Sharma');
@@ -26,7 +25,15 @@ export default function App() {
   const [activeProjectMenu, setActiveProjectMenu] = useState<number | null>(null);
   const [isVipUser, setIsVipUser] = useState<boolean>(false);
 
-  // Dynamic Saved Projects
+  // Floating AI Agent States
+  const [showAiAgentModal, setShowAiAgentModal] = useState<boolean>(false);
+  const [aiCommandInput, setAiCommandInput] = useState<string>('');
+  const [aiChatLogs, setAiChatLogs] = useState<any[]>([
+    { sender: 'ai', text: 'Namaste Hitesh! Main aapka AI Agent hu. Koi bhi editing command dein (उदा: "Add slowmo effect").' }
+  ]);
+  const [isListening, setIsListening] = useState<boolean>(false);
+
+  // Saved Projects & Recycle Bin
   const [savedProjects, setSavedProjects] = useState<any[]>(() => {
     const localData = localStorage.getItem('hyper_edits_projects');
     return localData ? JSON.parse(localData) : [
@@ -61,7 +68,6 @@ export default function App() {
     }
   }, []);
 
-  // Trigger Phone Gallery File Picker
   const handleNewProjectClick = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -72,9 +78,6 @@ export default function App() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const mediaUrl = URL.createObjectURL(file);
-      setSelectedMedia(mediaUrl);
       setActiveTab('editor');
     }
   };
@@ -89,7 +92,7 @@ export default function App() {
       localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedProjects));
       localStorage.setItem('hyper_edits_recycle_bin', JSON.stringify(updatedBin));
       setActiveProjectMenu(null);
-      alert('🗑️ Project moved to Recycle Bin! (Saved for 30 Days)');
+      alert('🗑️ Project moved to Recycle Bin (30-Day limit)!');
     }
   };
 
@@ -115,6 +118,30 @@ export default function App() {
     }
   };
 
+  // AI Agent Command Handler
+  const handleAiSendCommand = () => {
+    if (!aiCommandInput.trim()) return;
+    const userMsg = aiCommandInput;
+    setAiChatLogs(prev => [...prev, { sender: 'user', text: userMsg }]);
+    setAiCommandInput('');
+
+    setTimeout(() => {
+      let reply = `✓ Command Executed: "${userMsg}" applied to active timeline layer!`;
+      if (userMsg.toLowerCase().includes('slowmo')) reply = '⚡ Velocity SlowMo 4x applied successfully!';
+      if (userMsg.toLowerCase().includes('audio')) reply = '🎵 Audio track enhanced and noise suppressed!';
+      setAiChatLogs(prev => [...prev, { sender: 'ai', text: reply }]);
+    }, 800);
+  };
+
+  const handleVoiceListening = () => {
+    setIsListening(true);
+    alert('🎤 AI Voice Mic Active: Boliye aap kya command dena chahte hain...');
+    setTimeout(() => {
+      setIsListening(false);
+      setAiChatLogs(prev => [...prev, { sender: 'user', text: '🎙️ [Voice Command]: Apply Cyberpunk filter' }, { sender: 'ai', text: '✓ Cyberpunk Grade applied via Voice!' }]);
+    }, 2500);
+  };
+
   if (!isAppMode) {
     return <Auth onGuestAccess={() => setIsAppMode(true)} />;
   }
@@ -122,14 +149,7 @@ export default function App() {
   return (
     <div style={{ background: '#0D0E12', minHeight: '100vh', color: '#FFF', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', paddingBottom: '40px', position: 'relative', overflowX: 'hidden' }}>
       
-      {/* Hidden File Input for Direct Gallery Upload */}
-      <input 
-        type="file" 
-        ref={fileInputRef} 
-        onChange={handleFileChange} 
-        accept="video/*,image/*" 
-        style={{ display: 'none' }} 
-      />
+      <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="video/*,image/*" style={{ display: 'none' }} />
 
       {/* TOP HEADER */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 16px', background: '#14151C', borderBottom: '1px solid #222431' }}>
@@ -244,7 +264,6 @@ export default function App() {
       <div style={{ maxWidth: '480px', margin: '0 auto', padding: '16px' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
           
-          {/* New Video Button - Directly Triggers Gallery File Picker */}
           <div onClick={handleNewProjectClick} style={{ background: 'linear-gradient(135deg, #1A2639, #111827)', border: '1px solid #00F2FF55', borderRadius: '16px', padding: '22px 16px', textAlign: 'center', cursor: 'pointer' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '50%', background: '#00F2FF', color: '#000', fontSize: '26px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto' }}>+</div>
             <div style={{ fontSize: '15px', fontWeight: 'bold', color: '#FFF' }}>New video</div>
@@ -276,7 +295,7 @@ export default function App() {
           ))}
         </div>
 
-        {/* PROJECTS SECTION WITH AUTO-SAVE & 3-DOTS OPTIONS */}
+        {/* PROJECTS SECTION WITH AUTO-SAVE & 3-DOTS */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
           <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Projects ({savedProjects.length})</h3>
           <span style={{ fontSize: '11px', color: '#00F2FF', background: '#14151C', padding: '4px 8px', borderRadius: '6px', border: '1px solid #222431' }}>⚡ Auto-Saved</span>
@@ -286,7 +305,6 @@ export default function App() {
           <div style={{ background: '#14151C', border: '1px dashed #222431', borderRadius: '12px', padding: '36px 20px', textAlign: 'center' }}>
             <div style={{ fontSize: '32px', marginBottom: '8px', opacity: 0.5 }}>📁</div>
             <div style={{ fontSize: '14px', fontWeight: '600', color: '#888' }}>No project files found</div>
-            <div style={{ fontSize: '11px', color: '#555', marginTop: '4px' }}>Tap 'New video' to pick gallery photo/video</div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -302,10 +320,7 @@ export default function App() {
                 </div>
 
                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveProjectMenu(activeProjectMenu === item.id ? null : item.id);
-                  }}
+                  onClick={(e) => { e.stopPropagation(); setActiveProjectMenu(activeProjectMenu === item.id ? null : item.id); }}
                   style={{ position: 'absolute', top: '12px', right: '12px', background: 'none', border: 'none', color: '#AAA', fontSize: '18px', cursor: 'pointer', padding: '4px' }}
                 >
                   ⋮
@@ -323,6 +338,51 @@ export default function App() {
         )}
       </div>
 
+      {/* FLOATING DRAGGABLE AI ASSISTANT BUBBLE (Termux Style Voice + Text Command) */}
+      <div style={{ position: 'fixed', bottom: '30px', right: '20px', zIndex: 9998 }}>
+        {!showAiAgentModal ? (
+          <div 
+            onClick={() => setShowAiAgentModal(true)}
+            style={{ width: '52px', height: '52px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7000FF)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 20px rgba(0,242,255,0.6)', border: '2px solid #FFF', animation: 'pulse 2s infinite' }}
+            title="AI Command Agent"
+          >
+            🤖
+          </div>
+        ) : (
+          <div style={{ width: '300px', background: '#14151C', border: '2px solid #7000FF', borderRadius: '16px', overflow: 'hidden', boxShadow: '0 8px 30px rgba(0,0,0,0.9)', animation: 'fadeIn 0.2s' }}>
+            <div style={{ background: '#1A1C24', padding: '10px 14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
+              <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#00F2FF' }}>🤖 Hyper AI Assistant</span>
+              <button onClick={() => setShowAiAgentModal(false)} style={{ background: 'none', border: 'none', color: '#FF4D4D', fontWeight: 'bold', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+            </div>
+            
+            <div style={{ height: '160px', overflowY: 'auto', padding: '10px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11px' }}>
+              {aiChatLogs.map((log, lIdx) => (
+                <div key={lIdx} style={{ alignSelf: log.sender === 'user' ? 'flex-end' : 'flex-start', background: log.sender === 'user' ? '#7000FF' : '#1E202B', padding: '6px 10px', borderRadius: '8px', maxWidth: '80%', color: '#FFF' }}>
+                  {log.text}
+                </div>
+              ))}
+            </div>
+
+            <div style={{ padding: '10px', background: '#14151C', borderTop: '1px solid #222431', display: 'flex', gap: '6px', alignItems: 'center' }}>
+              <input 
+                type="text" 
+                placeholder="Type command..." 
+                value={aiCommandInput}
+                onChange={(e) => setAiCommandInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') handleAiSendCommand(); }}
+                style={{ flex: 1, background: '#0D0E12', border: '1px solid #333', color: '#FFF', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', outline: 'none' }}
+              />
+              <button onClick={handleVoiceListening} style={{ background: isListening ? '#FF3B30' : '#222', border: 'none', color: '#FFF', padding: '6px 8px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px' }} title="Voice Command">
+                {isListening ? '🔴' : '🎙️'}
+              </button>
+              <button onClick={handleAiSendCommand} style={{ background: '#00F2FF', border: 'none', color: '#000', padding: '6px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}>
+                Send
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* SETTINGS MODAL */}
       {showSettingsModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10005, overflowY: 'auto', padding: '16px 20px' }}>
@@ -330,16 +390,6 @@ export default function App() {
             <button onClick={() => setShowSettingsModal(false)} style={{ background: 'none', border: 'none', color: '#FFF', fontSize: '20px', cursor: 'pointer' }}>‹</button>
             <span style={{ fontSize: '16px', fontWeight: 'bold', color: '#FFF' }}>Settings</span>
             <div style={{ width: '20px' }}></div>
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#888', marginBottom: '12px' }}>Account</div>
-            <div style={{ background: '#14151C', borderRadius: '12px', border: '1px solid #222431' }}>
-              <div onClick={() => setIsEditingName(true)} style={{ padding: '14px 16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', cursor: 'pointer' }}>
-                <span style={{ fontSize: '14px', color: '#FFF' }}>Edit profile</span>
-                <span style={{ color: '#666' }}>›</span>
-              </div>
-            </div>
           </div>
 
           <div style={{ marginBottom: '24px' }}>
@@ -374,7 +424,7 @@ export default function App() {
         </div>
       )}
 
-      {/* RECYCLE BIN MODAL */}
+      {/* RECYCLE BIN */}
       {showRecycleBinModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10002, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -399,7 +449,6 @@ export default function App() {
         </div>
       )}
 
-      {/* POLICY MODAL */}
       {showPolicyModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 10003, padding: '20px', overflowY: 'auto' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431', paddingBottom: '12px', marginBottom: '16px' }}>
@@ -407,8 +456,8 @@ export default function App() {
             <button onClick={() => setShowPolicyBrowser(false)} style={{ background: '#222431', border: 'none', color: '#FFF', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Close ✕</button>
           </div>
           <div style={{ fontSize: '12px', color: '#AAA', lineHeight: '1.6' }}>
-            <p>1. उपयोगकर्ता का डेटा उनके स्वयं के डिवाइस के लोकल स्टोरेज में ही सुरक्षित रहता है।</p>
-            <p>2. सहायता एवं संपर्क: <strong>hs8822365@gmail.com</strong></p>
+            <p>1. उपयोगकर्ता का डेटा लोकल डिवाइस में ही सुरक्षित रहता है।</p>
+            <p>2. सहायता: <strong>hs8822365@gmail.com</strong></p>
           </div>
         </div>
       )}
@@ -416,7 +465,7 @@ export default function App() {
       {showPaymentModal && <PowerPaymentEngine onClose={() => setShowPaymentModal(false)} />}
       {showHistoryModal && <UserProfileHistory onClose={() => setShowHistoryModal(false)} />}
       
-      {/* EDITOR OVERLAY WITH AUTOMATIC PROJECT CREATION & AUTO-SAVE */}
+      {/* EDITOR OVERLAY */}
       {activeTab === 'editor' && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0D0E12', zIndex: 9999, overflowY: 'auto' }}>
           <div style={{ padding: '12px 16px', background: '#14151C', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #222431' }}>
@@ -424,7 +473,6 @@ export default function App() {
               onClick={() => {
                 const now = new Date();
                 const liveStamp = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                
                 const autoSavedProj = {
                   id: Date.now(),
                   title: 'Project_' + (savedProjects.length + 1),
@@ -435,12 +483,11 @@ export default function App() {
                 const updated = [autoSavedProj, ...savedProjects];
                 setSavedProjects(updated);
                 localStorage.setItem('hyper_edits_projects', JSON.stringify(updated));
-                
                 setActiveTab('projects');
               }} 
               style={{ background: 'none', border: 'none', color: '#00F2FF', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}
             >
-              ← Back to Projects (Auto-Save)
+              ← Back to Dashboard (Auto-Save)
             </button>
             <span style={{ fontSize: '14px', fontWeight: 'bold' }}>CapCut Workspace</span>
             <div></div>
