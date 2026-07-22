@@ -1,58 +1,60 @@
 import React, { useState, useEffect } from 'react';
-import EditorFeatures from './EditorFeatures';
-import Auth from './Auth';
-import UserProfileHistory from './UserProfileHistory';
-import PowerPaymentEngine from './PowerPaymentEngine';
+import './App.css';
 
 export default function App() {
-  const [isAppMode, setIsAppMode] = useState<boolean>(false);
-  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check if secret app mode is active
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('mode') === 'app' || window.location.search.includes('mode=app')) {
-      setIsAppMode(true);
-    }
+    // 2-Second Purple Splash Animation Timer (Auto Fallback)
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+    return () => clearTimeout(timer);
   }, []);
 
-  // DIRECT SECRET APP MODE (When ?mode=app is opened by you)
-  if (isAppMode) {
+  if (loading) {
     return (
-      <div style={{ background: '#0A0A10', minHeight: '100vh', color: '#FFF', padding: '16px', fontFamily: 'Segoe UI, sans-serif', boxSizing: 'border-box' }}>
-        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
-          
-          {/* TOP VIP APP BAR */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: '#12121A', padding: '12px 16px', borderRadius: '14px', border: '1px solid #00F2FF', boxShadow: '0 0 15px rgba(0,242,255,0.2)' }}>
-            <div>
-              <h3 style={{ color: '#00F2FF', margin: 0, fontSize: '1rem', fontWeight: 'bold' }}>⚡ HYPEREDITS PRO</h3>
-              <span style={{ color: '#34C759', fontSize: '0.7rem', fontWeight: 'bold' }}>Merchant: 9549753157@nyes</span>
-            </div>
-            <button onClick={() => setShowPaymentModal(true)} style={{ background: 'linear-gradient(135deg, #00F2FF, #34C759)', color: '#000', border: 'none', padding: '8px 14px', borderRadius: '10px', fontWeight: '900', fontSize: '0.75rem', cursor: 'pointer' }}>
-              💳 VIP Payment
-            </button>
-          </div>
-
-          {/* USER PROFILE & TOKEN HISTORY */}
-          <UserProfileHistory />
-
-          {/* MAIN AI STUDIO WORKSPACE */}
-          <Auth />
-
-          {/* SYNCED PAYMENT ENGINE MODAL */}
-          {showPaymentModal && (
-            <PowerPaymentEngine 
-              userNameOrPhone="9549753157" 
-              amount="1" 
-              onPaymentSuccess={() => {}} 
-              onClose={() => setShowPaymentModal(false)} 
-            />
-          )}
+      <div style={{
+        height: '100vh',
+        width: '100vw',
+        backgroundColor: '#0f0f17',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#ffffff',
+        fontFamily: 'sans-serif'
+      }}>
+        <div style={{
+          width: '70px',
+          height: '70px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #a29bfe, #6c5ce7)',
+          boxShadow: '0 0 30px #6c5ce7',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          animation: 'pulse 1.5s infinite alternate'
+        }}>
+          <span style={{ fontSize: '28px', fontWeight: 'bold' }}>H</span>
         </div>
+        <h2 style={{ marginTop: '20px', letterSpacing: '2px', color: '#a29bfe' }}>HyperEdits Pro</h2>
+        <style>{`
+          @keyframes pulse {
+            0% { transform: scale(0.9); box-shadow: 0 0 15px #6c5ce7; }
+            100% { transform: scale(1.1); box-shadow: 0 0 35px #a29bfe; }
+          }
+        `}</style>
       </div>
     );
   }
 
-  // DEFAULT OFFICIAL LANDING PAGE (For Public / Instagram Visitors)
-  return <EditorFeatures />;
+  return (
+    <div style={{ backgroundColor: '#181825', minHeight: '100vh', color: '#fff', padding: '20px' }}>
+      <header style={{ textAlign: 'center', padding: '40px 0' }}>
+        <h1 style={{ color: '#a29bfe', fontSize: '2.5rem' }}>HyperEdits Pro Master</h1>
+        <p style={{ color: '#b5b5c5', marginTop: '10px' }}>Your Power AI Video Editor & Master Tools</p>
+      </header>
+    </div>
+  );
 }
