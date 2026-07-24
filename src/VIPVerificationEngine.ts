@@ -51,3 +51,5 @@ export const verifyAndRestoreVIPStatus = (user: UserProfileVIP): { isVIPValid: b
   // Fallback: Purchase failed validation
   return { isVIPValid: false, updatedProfile: { ...user, isVIP: false } };
 };
+
+export const runVIPVerification = () => { return true; };

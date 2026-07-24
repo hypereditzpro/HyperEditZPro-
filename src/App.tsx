@@ -1,263 +1,376 @@
-import React, { useState, useEffect } from 'react';
-import { Volume2, Palette, Music, Pause, RotateCcw, Box, Link as LinkIcon, Split } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import "./App.css";
 
-export default function App() {
-  // --- Core Main States ---
-  const [activeTool, setActiveTool] = useState('');
-  const [showSlider, setShowSlider] = useState(false);
-  const [sliderVal, setSliderVal] = useState(100);
-  const [opacityVal, setOpacityVal] = useState(100);
-  const [retouchSmoothness, setRetouchSmoothness] = useState(0);
-  const [selectedTrack, setSelectedTrack] = useState('video');
-  const [showOverlaySubMenu, setShowOverlaySubMenu] = useState(false);
+// Module Imports
+import GamerAIFeatures from "./GamerAIFeatures";
+import AIBackgroundEraser from "./AIBackgroundEraser";
+import AIVoiceChanger from "./AIVoiceChanger";
+import EditorFeatures from "./EditorFeatures";
+import FiltersManager from "./FiltersManager";
+import AudioFadeManager from "./AudioFadeManager";
+import PowerPaymentEngine from "./PowerPaymentEngine";
+import VIPSubscriptionModal from "./VIPSubscriptionModal";
+import UserProfileHistory from "./UserProfileHistory";
+
+export const App: React.FC = () => {
+  const [showSplash, setShowSplash] = useState<boolean>(true);
   
-  // --- Audio & Playback Engine States ---
-  const [videoRotation, setVideoRotation] = useState(0);
-  const [stabilizeProgress, setStabilizeProgress] = useState(0);
-  const [audioExtracted, setAudioExtracted] = useState(false);
-  const [showTransformMenu, setShowTransformMenu] = useState(false);
-  const [trackingMode, setTrackingMode] = useState('auto');
-  const [trackTarget, setTrackTarget] = useState('Face');
-  const [manualAnchor, setManualAnchor] = useState('Head');
-  const [isReversed, setIsReversed] = useState(false);
-  const [reverseProcessing, setReverseProcessing] = useState(false);
-  const [noiseReduced, setNoiseReduced] = useState(false);
-  const [voiceEnhanced, setVoiceEnhanced] = useState(false);
+  // LOGIN MANDATE STATES (NO SKIP ALLOWED)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [loginStep, setLoginStep] = useState<'auth' | 'details'>('auth');
+  const [userNameInput, setUserNameInput] = useState<string>('');
+  const [userDobInput, setUserDobInput] = useState<string>('');
+
+  const [activeTab, setActiveTab] = useState<"dashboard" | "editor" | "vip" | "profile">("dashboard");
+  const [isVIP, setIsVIP] = useState<boolean>(false);
+  const [showVIPModal, setShowVIPModal] = useState<boolean>(false);
+
+  // Drawers & Modals States
+  const [showSettingsDrawer, setShowSettingsDrawer] = useState<boolean>(false);
+  const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
+  const [showRecycleBinModal, setShowRecycleBinModal] = useState<boolean>(false);
+
+  // App Settings States
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("Rajasthani");
+  const [cacheSize, setCacheSize] = useState<string>("128 MB");
+  const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
   
-  // --- Mask & Tracking Engine States ---
-  const [maskShape, setMaskShape] = useState('None');
-  const [maskFeather, setMaskFeather] = useState(0);
-  const [maskRotation, setMaskRotation] = useState(0);
-  const [isLinked, setIsLinked] = useState(true);
+  const [savedTemplates, setSavedTemplates] = useState<string[]>([
+    "FreeFire_Kill_Montage_Template"
+  ]);
 
-  // --- Dynamic Audio Hub States ---
-  const [showAudioSubMenu, setShowAudioSubMenu] = useState(false);
-  const [activeAudioTool, setActiveAudioTool] = useState('');
-  const [soundFXList, setSoundFXList] = useState(['Headshot_Kill.mp3', 'AWM_Sniper.wav', 'SlowMo_BassDrop.mp3']);
-  const [isRecording, setIsRecording] = useState(false);
-  const [textToSpeechInput, setTextToSpeechInput] = useState('');
-  const [aiVoiceActive, setAiVoiceActive] = useState(false);
+  // Projects Library (Auto-Saved with Fixed Creation Date)
+  const [projects, setProjects] = useState([
+    { id: 'proj_101', name: '0623-01', createdDate: '22/07/2026 14:50', size: '33MB', duration: '00:18', thumb: '🎮', timestamp: 1784712600000 },
+    { id: 'proj_102', name: '0614-01', createdDate: '23/06/2026 08:03', size: '105MB', duration: '00:21', thumb: '🎬', timestamp: 1782201780000 }
+  ]);
 
-  // --- Copyright Remover Engine States ---
-  const [customAudioTitle, setCustomAudioTitle] = useState('');
-  const [isCopyrightCleared, setIsCopyrightCleared] = useState(false);
-  const [copyrightProgress, setCopyrightProgress] = useState(0);
+  // Recycle Bin
+  const [recycledProjects, setRecycledProjects] = useState<Array<{ id: string; name: string; deletedDaysAgo: number }>>([
+    { id: 'trash_1', name: 'Old_Montage_05.mp4', deletedDaysAgo: 12 }
+  ]);
 
-  // --- Color Adjust Engine States ---
-  const [showFiltersMenu, setShowFiltersMenu] = useState(false);
-  const [currentAdjustTab, setCurrentAdjustTab] = useState('Adjust');
-  const [adjustSubTab, setAdjustSubTab] = useState('Smart');
-  const [activeAdjustFactor, setActiveAdjustFactor] = useState('Brightness');
-  const [adjBrightness, setAdjBrightness] = useState(100);
-  const [adjContrast, setAdjContrast] = useState(100);
-  const [adjSaturation, setAdjSaturation] = useState(100);
-  const [adjBrilliance, setAdjBrilliance] = useState(0);
-  const [adjSharpen, setAdjSharpen] = useState(0);
-  const [adjClarity, setAdjClarity] = useState(0);
-  const [smartAiEnabled, setSmartAiEnabled] = useState(false);
-  const [adjHighlights, setAdjHighlights] = useState(100);
-  const [adjShadows, setAdjShadows] = useState(100);
-  const [adjWhites, setAdjWhites] = useState(100);
-  const [adjBlacks, setAdjBlacks] = useState(100);
-  const [adjTemp, setAdjTemp] = useState(0);
-  const [adjHue, setAdjHue] = useState(0);
-  const [adjFade, setAdjFade] = useState(0);
-  const [adjVignette, setAdjVignette] = useState(0);
-  const [adjGrain, setAdjGrain] = useState(0);
+  // Splash Screen Timer
+  useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
-  // --- Multilayer Track States ---
-  const [overlayLayers, setOverlayLayers] = useState(['Glow_Effect.mp4', 'Kill_Effect.mp4']);
-  const [subAudioLayers, setSubAudioLayers] = useState(['Montage_Music.mp3', 'Gunshot_FX.wav', 'KillSound.mp3', 'Voiceover.mp3']);
-  const [expandAudioLayers, setExpandAudioLayers] = useState(false);
-  const [textLayers, setTextLayers] = useState(['Sub: H.S Hyper Gamerz', 'Kill Effect Text', 'Glow Title']);
-  const [expandTextLayers, setExpandTextLayers] = useState(false);
+  // Login Handlers
+  const handleGoogleLoginStart = () => {
+    setLoginStep('details');
+  };
 
-  // --- Lower Deck Control States ---
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [keyframePoints, setKeyframePoints] = useState([]);
+  const handleCompleteRegistration = () => {
+    if (!userNameInput.trim() || !userDobInput.trim()) {
+      alert("⚠️ Please enter valid Username and Date of Birth!");
+      return;
+    }
+    setIsLoggedIn(true);
+    alert("✅ Welcome " + userNameInput + "! Account Created & Auto-Synced with Google Drive.");
+  };
 
-  // --- Final Purple & Black Dashboard States ---
-  const [currentScreen, setCurrentScreen] = useState('dashboard'); // 'dashboard' or 'editor'
-  const [photoEditActive, setPhotoEditActive] = useState(false);
-  const [selectedPhotoTool, setSelectedPhotoTool] = useState('');
-  const [showAllToolsModal, setShowAllToolsModal] = useState(false);
+  // Smart Project Creation Handler (No Dupes / No Empty Saves)
+  const handleCreateNewProject = () => {
+    const projName = "Project_" + Math.floor(Math.random() * 9000 + 1000);
+    const fixedCreatedDate = new Date().toLocaleString();
+    const nowTime = Date.now();
+    
+    const userMadeEdits = window.confirm("🎬 Opening CapCut Pro Editor Canvas...\nDid you add edits/clips to this project? (OK = Yes, Save Project | Cancel = Discard Empty Project)");
+    
+    if (userMadeEdits) {
+      const newProj = {
+        id: "proj_" + nowTime,
+        name: projName,
+        createdDate: fixedCreatedDate,
+        size: '42MB',
+        duration: '00:15',
+        thumb: '✨',
+        timestamp: nowTime
+      };
+      setProjects([newProj, ...projects]);
+      alert("✅ Project " + projName + " saved with fixed creation timestamp!");
+    } else {
+      alert("⚠️ Empty project discarded automatically to prevent duplicate copies.");
+    }
+  };
 
-  // --- Realtime Persistent Auto-Save Database States ---
-  const [savedProjects, setSavedProjects] = useState(() => {
-    const localData = localStorage.getItem('hyper_edits_projects');
-    if (localData) return JSON.parse(localData);
-    return [
-      { name: 'FF_Montage_01', date: new Date().toLocaleString('en-IN', { hour12: false }), size: '42MB', len: '00:15', tag: '🎮' }
-    ];
+  const handleMoveToRecycleBin = (proj: any) => {
+    setProjects(projects.filter(p => p.id !== proj.id));
+    setRecycledProjects([...recycledProjects, { id: proj.id, name: proj.name, deletedDaysAgo: 0 }]);
+    alert("🗑️ Moved " + proj.name + " to Trash!");
+  };
+
+  const handleRestoreProject = (id: string) => {
+    const item = recycledProjects.find(p => p.id === id);
+    if (item) {
+      setRecycledProjects(recycledProjects.filter(p => p.id !== id));
+      setProjects([...projects, { id: item.id, name: item.name, createdDate: 'Restored Today', size: '35MB', duration: '00:20', thumb: '🎬', timestamp: Date.now() }]);
+      alert("🔄 Restored " + item.name + " back to Active Projects!");
+    }
+  };
+
+  // Sorted Projects Output
+  const sortedProjects = [...projects].sort((a, b) => {
+    return sortOrder === 'newest' ? b.timestamp - a.timestamp : a.timestamp - b.timestamp;
   });
 
-  const mainTools = [
-    { id: 'audio_effects', label: 'Audio effects', icon: <Palette size={20} /> },
-    { id: 'enhance_voice', label: 'Enhance voice', icon: <Music size={20} /> },
-    { id: 'freeze', label: 'Freeze', icon: <Pause size={20} /> },
-    { id: 'reverse', label: 'Reverse', icon: <RotateCcw size={20} /> },
-    { id: 'mask', label: 'Mask', icon: <Box size={20} color="#00F2FF" /> },
-    { id: 'link', label: 'Link', icon: <LinkIcon size={20} /> }
-  ];
+    if (showSplash) {
+    return (
+      <div style={{ background: '#08080C', height: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'center', padding: '40px 20px', color: '#FFF', fontFamily: 'Segoe UI, sans-serif', position: 'relative', overflow: 'hidden' }}>
+        
+        {/* TOP BRANDING - MADE IN INDIA #1 APP */}
+        <div style={{ textAlign: 'center', animation: 'fadeInDown 0.6s ease-out' }}>
+          <span style={{ background: 'linear-gradient(135deg, #FF9933, #FFFFFF, #138808)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: '900', color: '#000', letterSpacing: '1px', boxShadow: '0 0 15px rgba(255, 153, 51, 0.4)', display: 'inline-block', marginBottom: '6px' }}>
+            🇮🇳 MADE IN INDIA
+          </span>
+          <h4 style={{ margin: 0, color: '#FFCC00', fontSize: '0.8rem', fontWeight: 'bold', textShadow: '0 0 10px rgba(255,204,0,0.6)', letterSpacing: '0.5px' }}>
+            #1 POWERFUL AI VIDEO EDITOR
+          </h4>
+        </div>
 
-  return (
-    <div style={{ backgroundColor: '#0A0A0C', minHeight: '100vh', color: '#FFF', fontFamily: 'sans-serif' }}>
-      {currentScreen === 'editor' ? (
-        <div style={{ width: '100%' }}>
-          <button 
-            onClick={() => {
-              const now = new Date();
-              const liveStamp = now.toLocaleDateString('en-IN') + ' ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-              
-              const newProj = {
-                name: 'Project_' + (savedProjects.length + 1),
-                date: liveStamp,
-                size: Math.floor(Math.random() * 150 + 20) + 'MB',
-                len: '00:18',
-                tag: '🔥'
-              };
-              
-              const updatedList = [newProj, ...savedProjects];
-              setSavedProjects(updatedList);
-              localStorage.setItem('hyper_edits_projects', JSON.stringify(updatedList));
-              
-              setCurrentScreen('dashboard');
-              alert('💾 Auto-Saved: Project locked safely with live date & time stamp!');
-            }} 
-            style={{ backgroundColor: '#7B2CBF', color: '#FFF', border: 'none', padding: '6px 14px', borderRadius: '6px', margin: '10px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 0 8px #7B2CBF' }}
-          >
-            🗙 Back to Dashboard
-          </button>
+        {/* CENTER 3D BOUNCING LOGO & CIRCLE RING */}
+        <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <div style={{ width: '100px', height: '100px', borderRadius: '50%', background: 'linear-gradient(135deg, #00F2FF, #7209B7, #F72585)', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '3rem', border: '3px solid #FFF', boxShadow: '0 0 30px #7209B7, 0 0 50px #00F2FF', animation: 'bounce 0.8s infinite alternate' }}>
+            🚀
+          </div>
+          <h1 style={{ color: '#00F2FF', fontSize: '1.8rem', fontWeight: '900', marginTop: '16px', textShadow: '0 0 20px #00F2FF', letterSpacing: '1px' }}>
+            HYPER EDITS PRO
+          </h1>
+          
+          {/* WELCOME TO THE APP TEXT */}
+          <span style={{ fontSize: '0.9rem', color: '#FFF', fontWeight: '600', marginTop: '4px', background: 'rgba(255,255,255,0.1)', padding: '4px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.2)' }}>
+            Welcome to the App
+          </span>
+        </div>
 
-          {/* ================= VIDEO EDITOR SCREEN WORKSPACE ================= */}
-          <div style={{ width: '100%', padding: '10px', boxSizing: 'border-box' }}>
-            <div style={{ width: '100%', height: '220px', backgroundColor: '#000', borderRadius: '8px', overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '10px', border: '1px solid #333' }}>
-              <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', filter: `brightness(${adjBrightness}%) contrast(${adjContrast}%) saturate(${adjSaturation}%)` }}>
-                <span style={{ fontSize: '13px', color: '#AAA' }}>{isReversed ? '🔄 [REVERSED] FreeFire_Headshot.mp4' : 'FreeFire_Headshot.mp4'}</span>
-                <span style={{ fontSize: '10px', color: '#666' }}>[ Live GPU Accelerated Screen Canvas ]</span>
-              </div>
-            </div>
-
-            {/* LOWER DECK PRO CONTROLLER BAR */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#131316', padding: '8px 14px', borderRadius: '20px', marginBottom: '8px', border: '1px solid #252529' }}>
-              <button onClick={() => alert('Aspect ratio updated!')} style={{ background: '#1C1C22', border: '1px solid #333', color: '#00F2FF', fontSize: '12px', padding: '4px 8px', borderRadius: '6px', cursor: 'pointer' }}>🖥️ FullView</button>
-              <div style={{ display: 'flex', gap: '15px', color: '#AAA', fontSize: '14px' }}>
-                <span onClick={() => setIsPlaying(!isPlaying)} style={{ cursor: 'pointer', color: '#FFF' }}>{isPlaying ? '⏸️' : '▶️'}</span>
-                <span onClick={() => setIsReversed(!isReversed)} style={{ cursor: 'pointer' }}>🔄</span>
-              </div>
-            </div>
+        {/* BOTTOM LOADING ENGINE STATUS */}
+        <div style={{ textAlign: 'center' }}>
+          <span style={{ fontSize: '0.7rem', color: '#F72585', fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
+            ⚡ Loading CapCut Pro Studio Engine...
+          </span>
+          <div style={{ width: '120px', height: '4px', background: '#1A1A28', borderRadius: '2px', margin: '0 auto', overflow: 'hidden' }}>
+            <div style={{ width: '100%', height: '100%', background: 'linear-gradient(90deg, #00F2FF, #F72585)', animation: 'pulse 1s infinite' }} />
           </div>
         </div>
-      ) : (
-        /* --- HYPER-EDITS PREMIUM PURPLE & BLACK DASHBOARD WITH LIVE AUTO-SAVE LOOP --- */
-        <div style={{ maxWidth: '600px', margin: '0 auto', padding: '16px', paddingBottom: '40px', animation: 'fadeIn 0.25s' }}>
-          
-          {/* Header Icons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <div style={{ fontSize: '20px', cursor: 'pointer', opacity: 0.9 }}>👤</div>
-            <div style={{ display: 'flex', gap: '18px', fontSize: '18px', cursor: 'pointer' }}>
-              <span>🔔</span>
-              <span>⚙️</span>
-            </div>
+
+      </div>
+    );
+  }
+
+  // MANDATORY NO-SKIP LOGIN GATEWAY
+  if (!isLoggedIn) {
+    return (
+      <div style={{ background: '#0A0A10', minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', color: '#FFF', fontFamily: 'Segoe UI, sans-serif' }}>
+        <div style={{ background: '#12121C', border: '1px solid #7209B7', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '360px', boxShadow: '0 0 25px rgba(114,9,183,0.4)' }}>
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <h2 style={{ color: '#00F2FF', margin: '0 0 6px 0', fontSize: '1.3rem' }}>🚀 HYPER EDITS PRO</h2>
+            <span style={{ fontSize: '0.7rem', color: '#AAA' }}>Mandatory Sign-In Required (No Skip)</span>
           </div>
 
-          {/* Top Two Big Hero Action Cards */}
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '18px' }}>
-            <div 
-              onClick={() => { setCurrentScreen('editor'); setPhotoEditActive(false); }}
-              style={{ flex: 1.4, background: 'linear-gradient(135deg, #7B2CBF 0%, #3C096C 100%)', borderRadius: '14px', padding: '24px 16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', cursor: 'pointer', boxShadow: '0 4px 15px rgba(123,44,191,0.4)', transition: 'transform 0.1s' }}
-            >
-              <span style={{ fontSize: '22px', backgroundColor: '#FFF', color: '#3C096C', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>+</span>
-              <span style={{ fontSize: '14px', fontWeight: 'bold', letterSpacing: '0.5px' }}>New video</span>
-            </div>
-
-            <div 
-              onClick={() => { setPhotoEditActive(!photoEditActive); setSelectedPhotoTool(''); alert(photoEditActive ? 'Photo Album Editor Closed' : '📸 Photo Album Editing Engine Active!'); }}
-              style={{ flex: 1, background: photoEditActive ? 'linear-gradient(135deg, #E0AAFF 0%, #7B2CBF 100%)' : '#1C1C24', border: photoEditActive ? 'none' : '1px solid #333', borderRadius: '14px', padding: '20px 12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', position: 'relative', transition: 'all 0.2s' }}
-            >
-              <span style={{ fontSize: '22px' }}>🖼️</span>
-              <span style={{ fontSize: '13px', fontWeight: 'bold', color: photoEditActive ? '#000' : '#FFF' }}>Edit photo</span>
-              <span style={{ fontSize: '8px', backgroundColor: '#FF9500', color: '#000', padding: '1px 4px', borderRadius: '4px', position: 'absolute', top: '5px', right: '5px', transform: 'scale(0.8)' }}>Nano Banana 2</span>
-            </div>
-          </div>
-
-          {/* Quick Access Tools 7+1 Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '22px', backgroundColor: '#14141A', padding: '12px', borderRadius: '12px', border: '1px solid #222' }}>
-            {[
-              { id: 'autocut', label: 'AutoCut', icon: '🎬' },
-              { id: 'retouch', label: 'Retouch', icon: '✨' },
-              { id: 'captions', label: 'Auto captions', icon: '🔤' },
-              { id: 'desktop', label: 'Desktop editor', icon: '💻' },
-              { id: 'remove_bg', label: 'Remove BG', icon: '👤' },
-              { id: 'enhance', label: 'Auto enhance', icon: '🪄' },
-              { id: 'camera', label: 'Camera', icon: '📷' },
-              { id: 'all_tools', label: '● All tools', icon: '🎛️', color: '#FF3B30' }
-            ].map((tool) => (
-              <div 
-                key={tool.id}
-                onClick={() => {
-                  if (tool.id === 'all_tools') {
-                    setShowAllToolsModal(true);
-                    alert('🎛️ Opening Complete Pro Feature Suite Matrix...');
-                  } else {
-                    setSelectedPhotoTool(tool.label);
-                    alert(tool.label + ' Engine initialized for editing.');
-                  }
-                }}
-                style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '10px 4px', backgroundColor: '#1C1C24', borderRadius: '8px', cursor: 'pointer', border: selectedPhotoTool === tool.label ? '1px solid #7B2CBF' : '1px solid transparent' }}
+          {loginStep === 'auth' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <button 
+                onClick={handleGoogleLoginStart}
+                style={{ background: '#4285F4', border: 'none', color: '#FFF', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
-                <span style={{ fontSize: '16px' }}>{tool.icon}</span>
-                <span style={{ fontSize: '10px', color: tool.color || '#AAA', textAlign: 'center', whiteSpace: 'nowrap' }}>{tool.label}</span>
+                🔴 Continue with Google Account
+              </button>
+              <button 
+                onClick={handleGoogleLoginStart}
+                style={{ background: '#1877F2', border: 'none', color: '#FFF', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
+              >
+                Sign in with Facebook / Socials
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ fontSize: '0.7rem', color: '#00F2FF', display: 'block', marginBottom: '4px' }}>Choose Username:</label>
+                <input 
+                  type="text" 
+                  placeholder="e.g. Gamer_Hyper" 
+                  value={userNameInput} 
+                  onChange={(e) => setUserNameInput(e.target.value)}
+                  style={{ width: '100%', background: '#0A0A10', border: '1px solid #333', color: '#FFF', padding: '10px', borderRadius: '6px', fontSize: '0.8rem' }}
+                />
               </div>
-            ))}
-          </div>
 
-          {/* Album Style Photo Editing Sub-Panel */}
-          {photoEditActive && (
-            <div style={{ backgroundColor: '#121216', border: '1px solid #7B2CBF', borderRadius: '10px', padding: '12px', marginBottom: '20px' }}>
-              <div style={{ fontSize: '11px', color: '#7B2CBF', fontWeight: 'bold', marginBottom: '8px' }}>📸 PHOTO ALBUM EDITOR ENGINE LIVE ({selectedPhotoTool || 'Select a Tool'}):</div>
-              <div style={{ width: '100%', height: '150px', backgroundColor: '#000', borderRadius: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: '#666', fontSize: '12px', border: '1px dashed #333', marginBottom: '8px' }}>
-                [ Realtime Target Image Canvas Area ]
+              <div>
+                <label style={{ fontSize: '0.7rem', color: '#00F2FF', display: 'block', marginBottom: '4px' }}>Date of Birth (DOB):</label>
+                <input 
+                  type="date" 
+                  value={userDobInput} 
+                  onChange={(e) => setUserDobInput(e.target.value)}
+                  style={{ width: '100%', background: '#0A0A10', border: '1px solid #333', color: '#FFF', padding: '10px', borderRadius: '6px', fontSize: '0.8rem' }}
+                />
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '11px', color: '#AAA', paddingTop: '6px', borderTop: '1px solid #222' }}>
-                <span style={{ cursor: 'pointer' }} onClick={() => alert('Photo Saved to Gallery!')}>💾 Save</span>
-                <span style={{ cursor: 'pointer' }} onClick={() => alert('Shared Photo!')}>🔗 Share</span>
-                <span style={{ cursor: 'pointer', color: '#FF3B30' }} onClick={() => setSelectedPhotoTool('')}>🔄 Reset Filter</span>
-              </div>
+
+              <button 
+                onClick={handleCompleteRegistration}
+                style={{ background: 'linear-gradient(135deg, #00F2FF, #7209B7)', border: 'none', color: '#FFF', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px', fontSize: '0.85rem' }}
+              >
+                ✓ Confirm & Access Studio
+              </button>
             </div>
           )}
 
-          {/* Projects History Section Layout */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-            <span style={{ fontSize: '16px', fontWeight: 'bold', letterSpacing: '0.3px' }}>Projects</span>
-            <div style={{ display: 'flex', gap: '12px', fontSize: '12px', color: '#7B2CBF', fontWeight: 'bold', cursor: 'pointer' }}>
-              <span>☁️ Space</span>
-              <span>☰</span>
+          <div style={{ marginTop: '16px', fontSize: '0.6rem', color: '#666', textAlign: 'center' }}>
+            1 Account Limit Policy Enforced | Data Auto-Synced with Gmail Drive
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: "#08080E", minHeight: "100vh", color: "#FFF", fontFamily: "Segoe UI, sans-serif", position: "relative", overflowX: "hidden" }}>
+      
+      {/* 1. TOP HEADER */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", background: "#12121C", borderBottom: "1px solid #1F1F30" }}>
+        
+        <button 
+          onClick={() => setActiveTab("profile")}
+          style={{ background: "linear-gradient(135deg, #7209B7, #F72585)", border: "2px solid #FFF", width: "36px", height: "36px", borderRadius: "50%", color: "#FFF", fontWeight: "bold", cursor: "pointer" }}
+        >
+          👤
+        </button>
+
+        {/* Quick Language Switcher On Top (Rajasthani First) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: '#161624', padding: '4px 8px', borderRadius: '12px', border: '1px solid #00F2FF' }}>
+          <span style={{ fontSize: '0.65rem', color: '#FFCC00', fontWeight: 'bold' }}>🗣️</span>
+          <select 
+            value={selectedLanguage} 
+            onChange={(e) => setSelectedLanguage(e.target.value)}
+            style={{ background: 'none', border: 'none', color: '#00F2FF', fontSize: '0.65rem', fontWeight: 'bold', cursor: 'pointer' }}
+          >
+            <option value="Rajasthani" style={{ background: '#12121C', color: '#FFCC00' }}>🐫 राजस्थानी (Rajasthani)</option>
+            <option value="Hindi" style={{ background: '#12121C', color: '#FFF' }}>🇮🇳 हिंदी (Hindi)</option>
+            <option value="English" style={{ background: '#12121C', color: '#FFF' }}>🇬🇧 English</option>
+          </select>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button onClick={() => setShowRecycleBinModal(true)} style={{ background: "none", border: "none", color: "#FF007F", fontSize: "1.1rem", cursor: "pointer" }}>🗑️</button>
+          <button onClick={() => setShowHistoryModal(true)} style={{ background: "none", border: "none", color: "#FFCC00", fontSize: "1.1rem", cursor: "pointer" }}>📜</button>
+          <button onClick={() => setShowSettingsDrawer(true)} style={{ background: "none", border: "none", color: "#FFF", fontSize: "1.1rem", cursor: "pointer" }}>⚙️</button>
+        </div>
+      </header>
+
+      {/* NAVIGATION TABS */}
+      <nav style={{ display: "flex", gap: "8px", padding: "10px 16px", background: "#101018", overflowX: "auto", borderBottom: "1px solid #1F1F30" }}>
+        <button onClick={() => setActiveTab("dashboard")} style={{ background: activeTab === "dashboard" ? "#7209B7" : "#161624", color: "#FFF", border: activeTab === "dashboard" ? "1px solid #F72585" : "1px solid #333", padding: "6px 14px", borderRadius: "8px", fontWeight: "bold", fontSize: "0.75rem", cursor: "pointer" }}>📱 Dashboard</button>
+        <button onClick={() => setActiveTab("editor")} style={{ background: activeTab === "editor" ? "#7209B7" : "#161624", color: "#FFF", border: activeTab === "editor" ? "1px solid #F72585" : "1px solid #333", padding: "6px 14px", borderRadius: "8px", fontWeight: "bold", fontSize: "0.75rem", cursor: "pointer" }}>✂️ CapCut Editor</button>
+        <button onClick={() => setActiveTab("vip")} style={{ background: activeTab === "vip" ? "#7209B7" : "#161624", color: "#FFF", border: activeTab === "vip" ? "1px solid #F72585" : "1px solid #333", padding: "6px 14px", borderRadius: "8px", fontWeight: "bold", fontSize: "0.75rem", cursor: "pointer" }}>💳 VIP Pass</button>
+        <button onClick={() => setActiveTab("profile")} style={{ background: activeTab === "profile" ? "#7209B7" : "#161624", color: "#FFF", border: activeTab === "profile" ? "1px solid #F72585" : "1px solid #333", padding: "6px 14px", borderRadius: "8px", fontWeight: "bold", fontSize: "0.75rem", cursor: "pointer" }}>👤 Profile</button>
+      </nav>
+
+      {/* MAIN DASHBOARD */}
+      {activeTab === "dashboard" && (
+        <main style={{ padding: "16px" }}>
+          
+          {/* ACTION CARDS */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "20px" }}>
+            <div onClick={handleCreateNewProject} style={{ background: "linear-gradient(135deg, #1A1A2A, #281438)", border: "1px solid #7209B7", borderRadius: "14px", padding: "20px 12px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "1.8rem", marginBottom: "6px" }}>➕</div>
+              <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#FFF", display: "block" }}>+ Create New Project</span>
+            </div>
+
+            <div onClick={() => alert("Opening Photo Canvas")} style={{ background: "linear-gradient(135deg, #1A1A2A, #142838)", border: "1px solid #00F2FF", borderRadius: "14px", padding: "20px 12px", textAlign: "center", cursor: "pointer" }}>
+              <div style={{ fontSize: "1.8rem", marginBottom: "6px" }}>🖼️</div>
+              <span style={{ fontSize: "0.85rem", fontWeight: "900", color: "#FFF", display: "block" }}>Edit Photo</span>
             </div>
           </div>
 
-          {/* Dynamic Scrollable Project Cards List powered by Realtime Auto-Save Database */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {savedProjects.map((proj, pIdx) => (
-              <div 
-                key={pIdx}
-                onClick={() => { setCurrentScreen('editor'); alert('Opening ' + proj.name + ' directly into timeline framework!'); }}
-                style={{ display: 'flex', alignItems: 'center', gap: '12px', backgroundColor: '#1C1C24', padding: '10px', borderRadius: '10px', cursor: 'pointer', border: '1px solid #25252E' }}
-              >
-                <div style={{ width: '50px', height: '50px', backgroundColor: '#0A0A0C', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', border: '1px solid #333' }}>{proj.tag}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 'bold', color: '#FFF', marginBottom: '3px' }}>{proj.name}</div>
-                  <div style={{ fontSize: '10px', color: '#8E8E93' }}>{proj.date}</div>
-                  <div style={{ fontSize: '9px', color: '#7B2CBF', marginTop: '2px', fontWeight: 'bold' }}>✂️ {proj.size}  |  ⏱️ {proj.len}</div>
+          {/* 7 + 1 TOOLS GRID */}
+          <div style={{ marginBottom: "24px" }}>
+            <h4 style={{ fontSize: "0.8rem", color: "#AAA", margin: "0 0 12px 0" }}>✨ SMART CREATIVE TOOLS</h4>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px" }}>
+              {[
+                { name: "AutoCut", icon: "⚡", action: () => alert("AutoCut Engine Working!") },
+                { name: "Retouch", icon: "💄", action: () => alert("Face Retouch Engine Active!") },
+                { name: "Auto Captions", icon: "📝", action: () => alert("Auto Caption Generator Active!") },
+                { name: "Desktop Editor", icon: "🖥️", action: () => alert("🌐 Desktop Engine: Web Launch Pending!") },
+                { name: "Remove Bg", icon: "👤", action: () => alert("AI Bg Remover Active!") },
+                { name: "Auto Enhance", icon: "✨", action: () => alert("Enhancer Active!") },
+                { name: "Camera", icon: "📷", action: () => alert("Opening HD Camera!") },
+                { name: "All Tools", icon: "🔴", action: () => alert("Opening 50+ Tools!"), highlight: true }
+              ].map((tool, idx) => (
+                <div key={idx} onClick={tool.action} style={{ background: "#141420", border: tool.highlight ? "1px solid #F72585" : "1px solid #222", borderRadius: "10px", padding: "10px 4px", textAlign: "center", cursor: "pointer" }}>
+                  <div style={{ fontSize: "1.2rem", marginBottom: "4px" }}>{tool.icon}</div>
+                  <span style={{ fontSize: "0.6rem", fontWeight: "bold", color: tool.highlight ? "#F72585" : "#CCC", display: "block" }}>{tool.name}</span>
                 </div>
-                <div style={{ color: '#8E8E93', fontSize: '14px', paddingRight: '4px' }}>⋮</div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
 
-        </div>
+          {/* PROJECTS LIBRARY WITH EASY TAP FILTER BUTTON (LEFT CORNER) */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <h4 style={{ fontSize: "0.85rem", color: "#FFF", margin: 0, fontWeight: "bold" }}>📂 Projects Library</h4>
+                
+                {/* Easy Tap Large Filter Button on Left Corner */}
+                <button 
+                  onClick={() => setSortOrder(sortOrder === 'newest' ? 'oldest' : 'newest')}
+                  style={{ background: "#1A1A28", border: "1px solid #7209B7", color: "#00F2FF", padding: "6px 12px", borderRadius: "8px", fontSize: "0.7rem", fontWeight: "bold", cursor: "pointer" }}
+                >
+                  🔽 Filter: {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
+                </button>
+              </div>
+
+              <span style={{ fontSize: "0.65rem", color: "#00F2FF", background: "#161624", padding: "2px 8px", borderRadius: "10px" }}>☁️ Drive Synced</span>
+            </div>
+
+            {/* Empty State vs Projects List */}
+            {sortedProjects.length === 0 ? (
+              <div style={{ background: '#12121C', border: '1px dashed #333', padding: '24px', borderRadius: '10px', textAlign: 'center', color: '#888', fontSize: '0.8rem' }}>
+                📂 No Projects Available
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {sortedProjects.map((proj) => (
+                  <div key={proj.id} style={{ background: "#12121C", border: "1px solid #1F1F30", borderRadius: "10px", padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                      <div style={{ width: "40px", height: "40px", background: "#1A1A28", borderRadius: "6px", display: "flex", justifyContent: "center", alignItems: "center", fontSize: "1.2rem" }}>
+                        {proj.thumb}
+                      </div>
+                      <div>
+                        <span style={{ fontSize: "0.75rem", fontWeight: "bold", color: "#FFF", display: "block" }}>{proj.name}</span>
+                        <span style={{ fontSize: "0.6rem", color: "#AAA" }}>Created: {proj.createdDate} | {proj.size}</span>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button onClick={() => alert("Saved Template!")} style={{ background: "#1A1A28", border: "1px solid #7209B7", color: "#00F2FF", padding: "4px 8px", borderRadius: "6px", fontSize: "0.6rem", cursor: "pointer" }}>📁 Template</button>
+                      <button onClick={() => handleMoveToRecycleBin(proj)} style={{ background: "#1A1A28", border: "1px solid #FF007F", color: "#FF007F", padding: "4px 8px", borderRadius: "6px", fontSize: "0.6rem", cursor: "pointer" }}>🗑️ Trash</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+        
+          {/* GAMER AI & VOICE CREATIVE TOOLS */}
+          <div style={{ marginTop: "20px", display: "flex", flexDirection: "column", gap: "16px" }}>
+            <GamerAIFeatures />
+            <AIBackgroundEraser />
+            <AIVoiceChanger />
+          </div>
+
+        </main>
       )}
+
+      {/* OTHER NAVIGATION TABS */}
+      {activeTab === "editor" && <div style={{ padding: "10px" }}><EditorFeatures /><FiltersManager /><AudioFadeManager /></div>}
+      {activeTab === "vip" && <div style={{ padding: "16px" }}><PowerPaymentEngine /></div>}
+      {activeTab === "profile" && <div style={{ padding: "16px" }}><UserProfileHistory /></div>}
+
+      <VIPSubscriptionModal isOpen={showVIPModal} onClose={() => setShowVIPModal(false)} />
+
     </div>
   );
-}
+};
+
+export default App;

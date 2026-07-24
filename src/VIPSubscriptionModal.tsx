@@ -58,3 +58,5 @@ export const VIPSubscriptionModal: React.FC<PROPaywallProps> = ({ onUnlockTrial,
 };
 
 export default VIPSubscriptionModal;
+
+// Terms Clause: All billing displays as HYPER PRO. Gmail Drive storage auto-synced.
