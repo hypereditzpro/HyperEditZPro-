@@ -37,7 +37,7 @@ export const Auth: React.FC<{ onLoginSuccess: (username: string) => void }> = ({
         
         {/* 3D BOUNCING LOGO */}
         <div style={{ margin: '0 auto 15px auto', width: '70px', height: '70px', borderRadius: '16px', border: '2px solid #00F2FF', background: '#0A0A10', display: 'flex', justifyContent: 'center', alignItems: 'center', animation: 'bounceLogo 2s infinite ease-in-out', boxShadow: '0 0 20px rgba(0, 242, 255, 0.5)' }}>
-          <span style={{ fontSize: '2rem', color: '#FFF', fontWeight: '900', textShadow: '0 0 10px #00F2FF' }}>H</span>
+          <img src="/logo.png" alt="Hyper Edits Pro Logo" style={{ width: '65px', height: '65px', objectFit: 'contain', borderRadius: '12px', filter: 'drop-shadow(0 0 12px #00F2FF)' }} />
         </div>
 
         <h2 style={{ color: '#00F2FF', margin: '0 0 8px 0', fontSize: '1.3rem', textShadow: '0 0 10px rgba(0,242,255,0.4)' }}>
