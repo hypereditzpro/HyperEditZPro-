@@ -17,6 +17,15 @@ This app cannot run inside Emulators or Virtual Cloning Spaces for security reas
     return true;
   };
 
+
+  // 🎉 HYPER EDITS PRO - GRAND CELEBRATION WELCOME & 3D SPINNING LOGO
+  const [showCelebration, setShowCelebration] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowCelebration(false), 4000);
+    return () => clearTimeout(timer);
+  }, []);
+
 export const Auth: React.FC = () => {
   const [loginMethod, setLoginMethod] = useState<'phone' | 'google' | 'social'>('phone');
   const [phoneNumber, setPhoneNumber] = useState<string>('');

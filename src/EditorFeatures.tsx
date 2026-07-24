@@ -537,10 +537,19 @@ export const EditorFeatures: React.FC = () => {
         ))}
       </div>
 
-      {/* VIP PAYWALL MODAL */}
+      {/* VIP PAYWALL MODAL WITH ACTIVE CLOSE & SHOOTING STAR EFFECT */}
       {showVipPaywall && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5, 5, 12, 0.98)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #12121C, #281438)', border: '2px solid #FFCC00', borderRadius: '16px', padding: '20px', width: '90%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 30px rgba(255, 204, 0, 0.3)' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(5, 5, 12, 0.98)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 10000, padding: '20px', animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ background: 'linear-gradient(135deg, #12121C, #281438)', border: '2px solid #FFCC00', borderRadius: '16px', padding: '20px', width: '90%', maxWidth: '360px', textAlign: 'center', boxShadow: '0 0 30px rgba(255, 204, 0, 0.3)', position: 'relative' }}>
+            
+            {/* ACTIVE CLOSE 'X' BUTTON */}
+            <button 
+              onClick={() => setShowVipPaywall(false)}
+              style={{ position: 'absolute', top: '12px', right: '14px', background: 'transparent', border: 'none', color: '#FFF', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', textShadow: '0 0 6px #FFCC00' }}
+            >
+              ✕
+            </button>
+
             <h2 style={{ color: '#FFCC00', margin: '0 0 8px 0', fontSize: '1.2rem' }}>👑 HYPER PRO VIP UNLOCK</h2>
             <p style={{ fontSize: '0.7rem', color: '#AAA', margin: '0 0 14px 0' }}>
               Your video contains Pro Features: <br />
