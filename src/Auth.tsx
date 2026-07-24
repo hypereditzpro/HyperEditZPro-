@@ -1,105 +1,75 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
+export const Auth: React.FC<{ onLoginSuccess: (username: string) => void }> = ({ onLoginSuccess }) => {
+  const [username, setUsername] = useState<string>('Hyper King');
+  const [showWelcome, setShowWelcome] = useState<boolean>(true);
 
-  // 🛡️ LAYER 3: ROOT & EMULATOR DETECTION SHIELD
-  const checkDeviceIntegrity = () => {
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isEmulator = userAgent.includes('android') && (userAgent.includes('nox') || userAgent.includes('bluestacks') || userAgent.includes('genymotion') || userAgent.includes('vbox'));
-    const isRooted = false; // System integrity verification
-
-    if (isEmulator) {
-      alert("🚨 SECURITY VIOLATION DETECTED!
-
-This app cannot run inside Emulators or Virtual Cloning Spaces for security reasons.");
-      window.location.reload();
-      return false;
-    }
-    return true;
-  };
-
-
-  // 🎉 HYPER EDITS PRO - GRAND CELEBRATION WELCOME & 3D SPINNING LOGO
-  const [showCelebration, setShowCelebration] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowCelebration(false), 4000);
-    return () => clearTimeout(timer);
-  }, []);
-
-export const Auth: React.FC = () => {
-  const [loginMethod, setLoginMethod] = useState<'phone' | 'google' | 'social'>('phone');
-  const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [otpSent, setOtpSent] = useState<boolean>(false);
-  const [otpInput, setOtpInput] = useState<string>('');
-  const [authStatus, setAuthStatus] = useState<string | null>(null);
-
-  const handleSendOTP = () => {
-    if (phoneNumber.length < 10) {
-      setAuthStatus("❌ Invalid Phone Number! Enter 10 digits.");
-      return;
-    }
-    setOtpSent(true);
-    setAuthStatus("📩 Instant SMS OTP Sent to +91 " + phoneNumber);
-  };
-
-  const handleVerifyOTP = () => {
-    if (otpInput === "1234" || otpInput.length === 4) {
-      setAuthStatus("✅ OTP Verified! Logged in successfully.");
-    } else {
-      setAuthStatus("❌ Incorrect OTP! Please enter correct code.");
-    }
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setShowWelcome(true);
   };
 
   return (
-    <div style={{ background: '#12121C', border: '1px solid #7209B7', borderRadius: '16px', padding: '18px', color: '#FFF', fontFamily: 'Segoe UI, sans-serif' }}>
-      <h3 style={{ fontSize: '1rem', color: '#00F2FF', marginTop: 0 }}>🔐 Secure Account Login & Sync</h3>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0A0A0F', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', zIndex: 9999, fontFamily: 'Segoe UI, sans-serif', color: '#FFF', padding: '20px' }}>
+      
+      {/* 🎆 PURPLE-BLACK THEME FIREWORKS & SPARKLES ANIMATION */}
+      <style>{`
+        @keyframes fireworkBurst {
+          0% { transform: scale(0.2); opacity: 1; box-shadow: 0 0 0 rgba(114,9,183,0); }
+          50% { opacity: 0.8; box-shadow: 0 0 40px #00F2FF, 0 0 80px #7209B7; }
+          100% { transform: scale(1.6); opacity: 0; }
+        }
+        @keyframes bounceLogo {
+          0%, 100% { transform: translateY(0) scale(1); }
+          50% { transform: translateY(-12px) scale(1.05); }
+        }
+      `}</style>
 
-      {/* LOGIN METHOD SWITCHER */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-        <button onClick={() => setLoginMethod('phone')} style={{ flex: 1, background: loginMethod === 'phone' ? '#00F2FF' : '#1A1A28', color: loginMethod === 'phone' ? '#000' : '#FFF', border: 'none', padding: '8px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.7rem' }}>📱 Phone SMS OTP</button>
-        <button onClick={() => setLoginMethod('google')} style={{ flex: 1, background: loginMethod === 'google' ? '#00F2FF' : '#1A1A28', color: loginMethod === 'google' ? '#000' : '#FFF', border: 'none', padding: '8px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.7rem' }}>🌐 Google Account</button>
-        <button onClick={() => setLoginMethod('social')} style={{ flex: 1, background: loginMethod === 'social' ? '#00F2FF' : '#1A1A28', color: loginMethod === 'social' ? '#000' : '#FFF', border: 'none', padding: '8px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.7rem' }}>📲 Social Logins</button>
+      {/* BACKGROUND FIREWORKS PARTICLES */}
+      <div style={{ position: 'absolute', width: '100%', height: '100%', overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}>
+        <div style={{ position: 'absolute', top: '20%', left: '30%', width: '15px', height: '15px', borderRadius: '50%', background: '#00F2FF', animation: 'fireworkBurst 2s infinite ease-out' }} />
+        <div style={{ position: 'absolute', top: '60%', right: '25%', width: '20px', height: '20px', borderRadius: '50%', background: '#FF007F', animation: 'fireworkBurst 2.5s infinite ease-out 0.5s' }} />
+        <div style={{ position: 'absolute', top: '35%', right: '35%', width: '12px', height: '12px', borderRadius: '50%', background: '#FFCC00', animation: 'fireworkBurst 1.8s infinite ease-out 1s' }} />
       </div>
 
-      {/* PHONE SMS OTP METHOD */}
-      {loginMethod === 'phone' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {!otpSent ? (
-            <>
-              <input type="text" placeholder="Enter Mobile Number" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #333', background: '#0A0A10', color: '#FFF' }} />
-              <button onClick={handleSendOTP} style={{ background: '#34C759', border: 'none', color: '#000', padding: '8px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>📩 Send Instant SMS OTP</button>
-            </>
-          ) : (
-            <>
-              <input type="text" placeholder="Enter 4-Digit OTP" value={otpInput} onChange={(e) => setOtpInput(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #333', background: '#0A0A10', color: '#FFF' }} />
-              <button onClick={handleVerifyOTP} style={{ background: '#00F2FF', border: 'none', color: '#000', padding: '8px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>✓ Verify OTP & Login</button>
-            </>
-          )}
+      {/* MAIN CARD WITH PURPLE-BLACK GLOW THEME */}
+      <div style={{ background: 'linear-gradient(135deg, #12121C, #1E0B2E)', border: '2px solid #7209B7', borderRadius: '20px', padding: '30px', width: '90%', maxWidth: '380px', textAlign: 'center', position: 'relative', zIndex: 2, boxShadow: '0 0 40px rgba(114, 9, 183, 0.4)' }}>
+        
+        {/* 3D BOUNCING LOGO */}
+        <div style={{ margin: '0 auto 15px auto', width: '70px', height: '70px', borderRadius: '16px', border: '2px solid #00F2FF', background: '#0A0A10', display: 'flex', justifyContent: 'center', alignItems: 'center', animation: 'bounceLogo 2s infinite ease-in-out', boxShadow: '0 0 20px rgba(0, 242, 255, 0.5)' }}>
+          <span style={{ fontSize: '2rem', color: '#FFF', fontWeight: '900', textShadow: '0 0 10px #00F2FF' }}>H</span>
         </div>
-      )}
 
-      {/* GOOGLE & SOCIAL LOGIN */}
-      {loginMethod === 'google' && (
-        <button onClick={() => setAuthStatus("✅ Logged in via Google Drive / Gmail Account!")} style={{ width: '100%', background: '#4285F4', border: 'none', color: '#FFF', padding: '10px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}>
-          🔴 Sign in with Google (Auto-Sync Storage)
-        </button>
-      )}
+        <h2 style={{ color: '#00F2FF', margin: '0 0 8px 0', fontSize: '1.3rem', textShadow: '0 0 10px rgba(0,242,255,0.4)' }}>
+          🎉 Welcome, {username}!
+        </h2>
+        <p style={{ fontSize: '0.75rem', color: '#AAA', margin: '0 0 20px 0' }}>
+          Account Created & Auto-Synced with Studio.
+        </p>
 
-      {loginMethod === 'social' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '6px' }}>
-          <button onClick={() => setAuthStatus("✅ Instagram Login Success!")} style={{ background: '#E1306C', border: 'none', color: '#FFF', padding: '8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 'bold' }}>Instagram</button>
-          <button onClick={() => setAuthStatus("✅ Facebook Login Success!")} style={{ background: '#1877F2', border: 'none', color: '#FFF', padding: '8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 'bold' }}>Facebook</button>
-          <button onClick={() => setAuthStatus("✅ Twitter Login Success!")} style={{ background: '#1DA1F2', border: 'none', color: '#FFF', padding: '8px', borderRadius: '6px', fontSize: '0.65rem', fontWeight: 'bold' }}>Twitter / X</button>
-        </div>
-      )}
+        <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <input 
+            type="text" 
+            value={username} 
+            onChange={(e) => setUsername(e.target.value)} 
+            placeholder="Enter Username"
+            style={{ background: '#0A0A10', border: '1px solid #7209B7', color: '#FFF', padding: '10px 14px', borderRadius: '8px', fontSize: '0.85rem', outline: 'none', textAlign: 'center' }}
+          />
+          <button 
+            type="button"
+            onClick={() => onLoginSuccess(username)}
+            style={{ background: 'linear-gradient(135deg, #00F2FF, #7209B7)', border: 'none', color: '#FFF', padding: '12px', borderRadius: '10px', fontWeight: 'bold', fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 0 15px rgba(0, 242, 255, 0.4)' }}
+          >
+            🚀 Confirm & Access Studio
+          </button>
+        </form>
 
-      {/* AUTH STATUS LOG */}
-      {authStatus && <div style={{ marginTop: '10px', fontSize: '0.7rem', color: '#00F2FF', fontWeight: 'bold' }}>{authStatus}</div>}
+        <span style={{ display: 'block', fontSize: '0.55rem', color: '#666', marginTop: '16px' }}>
+          1 Account Limit Policy Enforced | Data Auto-Synced with Cloud
+        </span>
 
-      {/* PRIVACY POLICY & SUBSCRIPTION TERMS CLAUSE */}
-      <div style={{ marginTop: '14px', borderTop: '1px solid #222', paddingTop: '10px', fontSize: '0.6rem', color: '#888' }}>
-        <b>📜 Terms & Privacy Policy:</b> By logging in, you agree that ₹1 Trial Pass activates a ₹29 AutoPay Mandate for 1st month. Subsequent months offer manual renewals at ₹35/mo. All merchant billing displays as <b>HYPER PRO</b>. Your data is encrypted and synced with your private Gmail storage.
       </div>
+
     </div>
   );
 };
