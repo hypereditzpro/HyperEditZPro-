@@ -175,7 +175,31 @@ export const App: React.FC = () => {
                 style={{ background: '#4285F4', border: 'none', color: '#FFF', padding: '12px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
               >
                 🔴 Continue with Google Account
-              </button>
+              </button> 
+ 
+      <div style={{ marginTop: '12px', background: '#161624', padding: '12px', borderRadius: '10px', border: '1px solid #7209B7' }}>
+        <label style={{ fontSize: '0.75rem', color: '#00F2FF', display: 'block', marginBottom: '6px', fontWeight: 'bold' }}>📱 Login via Mobile OTP (SMS Gateway)</label>
+        <input type="tel" placeholder="Enter 10-Digit Mobile Number" id="mobileOtpInput" maxLength={10} style={{ width: '100%', padding: '10px', background: '#0A0A10', border: '1px solid #333', borderRadius: '8px', color: '#FFF', fontSize: '0.85rem', marginBottom: '8px', boxSizing: 'border-box' }} />
+        <button onClick={() => {
+          const mobile = document.getElementById('mobileOtpInput').value;
+          if(mobile && mobile.length === 10) {
+            const generatedOtp = Math.floor(1000 + Math.random() * 9000);
+            alert(`📥 [Android Messenger Simulation]\nFrom: HYPER-EDITS-PRO\nYour Secure Login OTP is: ${generatedOtp}\n(Auto-detecting from SMS inbox...)`);
+            const userEnteredOtp = prompt('Enter the 4-Digit OTP received via SMS:');
+            if(userEnteredOtp == generatedOtp) {
+              alert('🎉 Mobile Authentication Successful! Welcome to Hyper Edits Pro.');
+              setIsLoggedIn(true);
+            } else {
+              alert('❌ Incorrect OTP! Please try again.');
+            }
+          } else {
+            alert('⚠️ Please enter a valid 10-digit mobile number first!');
+          }
+        }} style={{ width: '100%', background: 'linear-gradient(90deg, #7209B7, #00F2FF)', color: '#FFF', border: 'none', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.85rem' }}>
+          ⚡ Get OTP & Verify
+        </button>
+      </div>
+    
               <button 
                 onClick={handleGoogleLoginStart}
                 style={{ background: '#1877F2', border: 'none', color: '#FFF', padding: '10px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.75rem' }}
@@ -367,7 +391,7 @@ export const App: React.FC = () => {
       {activeTab === "vip" && <div style={{ padding: "16px" }}><PowerPaymentEngine /></div>}
       {activeTab === "profile" && <div style={{ padding: "16px" }}><UserProfileHistory /></div>}
 
-      <VIPSubscriptionModal isOpen={showVIPModal} onClose={() => setShowVIPModal(false)} />
+      
 
     </div>
   );

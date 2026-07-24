@@ -544,7 +544,7 @@ export const EditorFeatures: React.FC = () => {
             
             {/* ACTIVE CLOSE 'X' BUTTON */}
             <button 
-              onClick={() => { console.log("Closing Paywall"); setShowVipPaywall(false); }}
+              onClick={() => { console.log("Closing Paywall"); setShowVipPaywall(false); console.log("Paywall closed successfully");; }}
               style={{ position: 'absolute', top: '12px', right: '14px', background: 'transparent', border: 'none', color: '#FFF', fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', textShadow: '0 0 6px #FFCC00' }}
             >
               ✕
@@ -563,13 +563,13 @@ export const EditorFeatures: React.FC = () => {
 
             <button onClick={() => {
               setIsVipUser(true);
-              setShowVipPaywall(false);
+              setShowVipPaywall(false); console.log("Paywall closed successfully");;
               startExportProcess();
             }} style={{ width: '100%', background: 'linear-gradient(135deg, #FFCC00, #FF0055)', border: 'none', color: '#000', padding: '10px', borderRadius: '8px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer', marginBottom: '8px' }}>
               ⚡ Start 7-Day Free Trial & Export
             </button>
 
-            <button onClick={() => { console.log("Closing Paywall"); setShowVipPaywall(false); }} style={{ background: 'transparent', border: 'none', color: '#AAA', fontSize: '0.65rem', cursor: 'pointer' }}>
+            <button onClick={() => { console.log("Closing Paywall"); setShowVipPaywall(false); console.log("Paywall closed successfully");; }} style={{ background: 'transparent', border: 'none', color: '#AAA', fontSize: '0.65rem', cursor: 'pointer' }}>
               Close & Remove VIP Features
             </button>
           </div>
